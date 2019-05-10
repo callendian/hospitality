@@ -47,3 +47,33 @@ class Review(models.Model):
     editedAt = models.DateTimeField('date edited', null=True)
 
     #edit save to make sure only one review is allowed per person per guide
+
+class Countries(models.Model):
+    name = models.CharField(null=True, max_length=50)
+    country_code = models.CharField(null=True, max_length=5)
+
+class States(models.Model):
+    country_id = models.ForeignKey(Countries, on_delete=models.CASCADE)
+    name = models.CharField(null=True, max_length=50)
+    state_code = models.CharField(null=True, max_length=5)
+
+class Cities(models.Model):
+    state_id = models.ForeignKey(States, on_delete=models.CASCADE)
+    name = models.CharField(null=True, max_length=50)
+    city_code = models.CharField(null=True, max_length=5)
+
+class Visitors(models.Model):
+    name = models.CharField('name', max_length=22)
+    description = models.CharField('description', max_length=250)
+    createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
+    editedAt = models.DateTimeField('date edited', null=True)
+    creator = models.OneToOneField(User, on_delete=models.CASCADE)
+    choices = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other')
+    )
+    sex = models.CharField(max_length=10, choices=choices)
+    tour = models.ManyToManyField(Tours)
+
+
