@@ -67,7 +67,6 @@ class Visitors(models.Model):
     description = models.CharField('description', max_length=250)
     createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
     editedAt = models.DateTimeField('date edited', null=True)
-    creator = models.OneToOneField(User, on_delete=models.CASCADE)
     choices = (
         ('M', 'Male'),
         ('F', 'Female'),
