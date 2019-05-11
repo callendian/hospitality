@@ -78,8 +78,25 @@ def userreview(request):
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
 
-def dispites(request):
-    
+def disputes(request):
+    if(not request.user.is_authenticated):
+        return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
+    if(request.method == "GET"):
+        data = json.loads(request.body.decode("utf-8"))
+        curCase = Disputes.object.filter(id=data["disputeID"])
+        if(curCase.guide != request.user and curCase.visitor != request.user and (not request.user.is_superuser)):
+            return HttpResponse("You don't have permission to view this dispute", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
+        cur_dict = json.loads(serializers.serialize('json', [curCase, ]))[0]['fields']
+        serializedObj = json.dumps(cur_dict)
+        return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+    elif(request.method == "POST"):
+        data = json.loads(request.body.decode("utf-8"))
+        if("visitorID" not in data.keys()):
+            return HttpResponse("Input valid visitorID", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        if("guideID" not in data.keys()):
+            return HttpResponse("Input valid guideID", content_typ="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        
+
 def visitors(request):
     if(not request.user.is_authenticated):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
