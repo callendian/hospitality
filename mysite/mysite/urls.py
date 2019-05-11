@@ -22,5 +22,6 @@ urlpatterns = [
     path('auth/', include('auth.urls')),
     path('', include('main.urls')),
     path('main/', include('main.urls')),
-    path('userreview', views.userreview, name="userreview")
+    path('userreview', views.userreview, name="userreview"),
+    path('visitors', views.userreview, name="visitors")
 ]

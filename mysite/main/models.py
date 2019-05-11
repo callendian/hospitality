@@ -11,7 +11,7 @@ class Guide(models.Model):
     name = models.CharField('name', max_length=22)
     description = models.CharField('description', max_length=250)
     createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
-    editedAt = models.DateTimeField('date edited', null=True)
+    editedAt = models.DateTimeField(auto_now=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, unique=True)
 
 class Tours(models.Model):
@@ -20,7 +20,7 @@ class Tours(models.Model):
     Start = models.DateTimeField()
     End = models.DateTimeField('end_time')
     createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
-    editedAt = models.DateTimeField('date edited', null=True)
+    editedAt = models.DateTimeField(auto_now=True)
     notesToGuide = models.CharField('description', null=True, max_length=500, unique=False)
     '''
     def save(self, *args, **kwargs):
@@ -45,7 +45,7 @@ class Review(models.Model):
     )
     stars = models.CharField(max_length=2, choices=STAR_RATING)
     createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
-    editedAt = models.DateTimeField('date edited', null=True)
+    editedAt = models.DateTimeField(auto_now=True)
 
     #edit save to make sure only one review is allowed per person per guide
 
@@ -64,10 +64,9 @@ class Cities(models.Model):
     city_code = models.CharField(null=True, max_length=5)
 
 class Visitors(models.Model):
-    name = models.CharField('name', max_length=22)
     description = models.CharField('description', max_length=250)
     createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
-    editedAt = models.DateTimeField('date edited', null=True)
+    editedAt = models.DateTimeField(auto_now=True)
     choices = (
         ('M', 'Male'),
         ('F', 'Female'),
@@ -90,4 +89,13 @@ class VisitorReview(models.Model):
     )
     stars = models.CharField(max_length=2, choices=STAR_RATING)
     createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
-    editedAt = models.DateTimeField('date edited', null=True)
+    editedAt = models.DateTimeField(auto_now=True)
+
+class Disputes(models.Model):
+    guide = models.ForeignKey(Guide, on_delete=models.CASCADE, unique=True)
+    visitor = models.ForeignKey(Visitors, on_delete=models.CASCADE, unique=True)
+    description = models.CharField("description", max_length=500)
+    createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
+    editedAt = models.DateTimeField(auto_now=True)
+
+

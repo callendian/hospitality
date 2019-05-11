@@ -26,8 +26,8 @@ def userreview(request):
             if(len(isGuide) == 0):
                 return HttpResponse("You have to be a guide to write visitor review.")
             data = json.loads(request.body.decode("utf-8"))
-            if(allReviews != None):
-                return HttpResponse("You have already written review for this visitor", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+            #if(allReviews != None):
+            #    return HttpResponse("You have already written review for this visitor", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
             if(not "visitorName" in data.keys()):
                 return HttpResponse("visitorName is required", 
                     content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
@@ -77,6 +77,62 @@ def userreview(request):
             cur_dict["visitor_name"] = data["visitorName"]
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+
+def dispites(request):
+    
+def visitors(request):
+    if(not request.user.is_authenticated):
+        return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
+
+    if(request.method == "GET"):
+        currentProf = Visitors.objects.get(user=request.user)
+        print(currentProf)
+        if(currentProf == None):
+        return HttpResponse("You have to be a visitor to view visitor review.")
+        cur_dict = json.loads(serializers.serialize('json', [currentProf, ]))[0]['fields']
+        serializedObj = json.dumps(cur_dict)
+        return HttpResponse(serializedObj, content_type="application/json", status=status.HTTP_200_OK)
+    elif(request.method == "PATCH"):
+        data = json.loads(request.body.decode("utf-8"))
+        if("description" in data.keys()):
+            currentProf.description = data["description"]
+        if("sex" in data.keys()):
+            currentProf.sex = data["sex"]
+        currentProf.save()
+        cur_dict = json.loads(serializers.serialize('json', [allReviews, ]))[0]['fields']
+        serializedObj = json.dumps(cur_dict)
+        return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+    elif(request.method == "POST"):
+        data = json.loads(request.body.decode("utf-8"))
+        if(not "description" in data.keys()):
+            return HttpResponse("visitorName is required", 
+                content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
+        if(not "sex" in data.keys()):
+            return HttpResponse("Review Content is required", 
+                content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
+        newVisitor = Visitor(description=data["description"], sex=data["sex"], user=request.user)
+        if("tour" in data.keys()):
+            newVisitor.tour = data["tour"]
+        newVisitor.save()
+        cur_dict = json.loads(serializers.serialize('json', [newVisitor, ]))[0]['fields']
+        serializedObj = json.dumps(cur_dict)
+        return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+    elif(request.method == "DELETE"):
+        if(not request.user.is_superuser):
+            return HttpResponse("You have to be an administrator to delete a user", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
+        data = json.loads(request.body.decode("utf-8"))
+        if(not "visitorID" in data.keys()):
+            return HttpResponse("visitorName is required", 
+                content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
+        userToBeDeleted = Visitors.objects.filter(id=data["visitorID"])
+        userToBeDeleted.delete()
+        return HttpResponse("User Deleted", content_type="plain/text",status=status.HTTP_200_OK)
+
+
+
+
+
+
 
 
 
