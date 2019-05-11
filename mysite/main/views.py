@@ -13,3 +13,6 @@ def home(request):
         else:
                 return HttpResponse('Method not allowed on /.', status=405)
 
+
+
+
