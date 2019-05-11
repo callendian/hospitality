@@ -22,13 +22,14 @@ class Tours(models.Model):
     createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
     editedAt = models.DateTimeField('date edited', null=True)
     notesToGuide = models.CharField('description', null=True, max_length=500, unique=False)
-
+    '''
     def save(self, *args, **kwargs):
         # check for time conflicts, i.e. if the guide has any other tours scheduled for that time
         scheduled_tours = Tours.objects.filter(Guide=self.Guide, Start_date__range=(self.Start, self.End), End_date__range=(self.Start, self.End))
         if not scheduled_tours:
             return
         super().save(*args, **kwargs)
+    '''
 
 class Review(models.Model):
     # only one review per Tour allowed
@@ -74,5 +75,19 @@ class Visitors(models.Model):
     )
     sex = models.CharField(max_length=10, choices=choices)
     tour = models.ManyToManyField(Tours)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-
+class VisitorReview(models.Model):
+    visitor = models.ForeignKey(Visitors, on_delete=models.CASCADE, unique=True)
+    title = models.CharField(null=True, max_length=50)
+    content = models.CharField('description', max_length=500)
+    STAR_RATING = (
+        ('1', '1'),
+        ('2', '2'),
+        ('3', '3'),
+        ('4', '4'),
+        ('5', '5')
+    )
+    stars = models.CharField(max_length=2, choices=STAR_RATING)
+    createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
+    editedAt = models.DateTimeField('date edited', null=True)
