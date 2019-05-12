@@ -25,7 +25,7 @@ def userreview(request):
             isGuide = Guide.objects.filter(creator=request.user)
             if(len(isGuide) == 0):
                 return HttpResponse("You have to be a guide to write visitor review.")
-            data = json.loads(request.body.decode("utf-8"))
+            data = checkValidJSONInput(request)
             #if(allReviews != None):
             #    return HttpResponse("You have already written review for this visitor", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
             if(not "visitorName" in data.keys()):
@@ -50,7 +50,7 @@ def userreview(request):
             isGuide = Guide.objects.filter(creator=request.user)
             if(len(isGuide) == 0):
                 return HttpResponse("You have to be a guide to write visitor review.")
-            data = json.loads(request.body.decode("utf-8"))
+            data = checkValidJSONInput(request)
             if(not "visitorName" in data.keys()):
                 return HttpResponse("visitorName is required", 
                     content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
@@ -61,7 +61,7 @@ def userreview(request):
             isGuide = Guide.objects.filter(creator=request.user)
             if(len(isGuide) == 0):
                 return HttpResponse("You have to be a guide to write visitor review.")
-            data = json.loads(request.body.decode("utf-8"))
+            data = checkValidJSONInput(request)
             if(not "visitorName" in data.keys()):
                 return HttpResponse("visitorName is required", 
                     content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
@@ -77,38 +77,53 @@ def userreview(request):
             cur_dict["visitor_name"] = data["visitorName"]
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
-
+@csrf_exempt
 def disputes(request):
     if(not request.user.is_authenticated):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
     if(request.method == "GET"):
-        data = json.loads(request.body.decode("utf-8"))
-        curCase = Disputes.object.filter(id=data["disputeID"])
-        if(curCase.guide != request.user and curCase.visitor != request.user and (not request.user.is_superuser)):
+        data = checkValidJSONInput(request)
+        try:
+            curCase = Disputes.objects.get(id=data["disputeID"])
+        except:
+            return HttpResponse("Dispute with the given ID doesn't exist.", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        print(request.user)
+        print(curCase.guide.creator)
+        if(curCase.guide.creator != request.user and curCase.visitor.user != request.user and (not request.user.is_superuser)):
             return HttpResponse("You don't have permission to view this dispute", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
         cur_dict = json.loads(serializers.serialize('json', [curCase, ]))[0]['fields']
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
     elif(request.method == "POST"):
-        data = json.loads(request.body.decode("utf-8"))
+        data = checkValidJSONInput(request)
         if("visitorID" not in data.keys()):
             return HttpResponse("Input valid visitorID", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
         if("guideID" not in data.keys()):
             return HttpResponse("Input valid guideID", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
         if("description" not in data.keys()):
             return HttpResponse("Input valid description", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
-        newDispute = Disputes(visitor=Visitors.objects.get(id=data["visitorId"]), 
-                                guide=Guide.objects.get(id=data["guideID"], description=data["description"]))
+        try:
+            guide = Guide.objects.get(id=data["guideID"])
+            visitor = Visitors.objects.get(id=data["visitorID"])
+        except:
+            return HttpResponse("Guide or visitor not found.", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        newDispute = Disputes(visitor=visitor, 
+                                guide=guide, description=data["description"])
         newDispute.save()
         cur_dict = json.loads(serializers.serialize('json', [newDispute, ]))[0]['fields']
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
     elif(request.method == "DELETE"):
-        data = json.loads(request.body.decode("utf-8"))   
+        data = checkValidJSONInput(request)
         if("disputeID" not in data.keys()):
             return HttpResponse("Input valid disputeID", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
-        curDispute = Disputes.objects.get(id=data["disputeID"])
-        curDispute.delete()
+        try:
+            curCase = Disputes.objects.get(id=data["disputeID"])
+        except:
+            return HttpResponse("Dispute with the given ID doesn't exist.", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        if(curCase.guide.creator != request.user and curCase.visitor.user != request.user and (not request.user.is_superuser)):
+            return HttpResponse("You don't have permission to view this dispute", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
+        curCase.delete()
         return HttpResponse("Dispute successfully resolved", content_type="plain/text", status=status.HTTP_200_OK)
 def visitors(request):
     if(not request.user.is_authenticated):
@@ -123,7 +138,7 @@ def visitors(request):
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, content_type="application/json", status=status.HTTP_200_OK)
     elif(request.method == "PATCH"):
-        data = json.loads(request.body.decode("utf-8"))
+        data =checkValidJSONInput(request)
         if("description" in data.keys()):
             currentProf.description = data["description"]
         if("sex" in data.keys()):
@@ -133,14 +148,14 @@ def visitors(request):
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
     elif(request.method == "POST"):
-        data = json.loads(request.body.decode("utf-8"))
+        data = checkValidJSONInput(request)
         if(not "description" in data.keys()):
             return HttpResponse("visitorName is required", 
                 content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
         if(not "sex" in data.keys()):
             return HttpResponse("Review Content is required", 
                 content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
-        newVisitor = Visitor(description=data["description"], sex=data["sex"], user=request.user)
+        newVisitor = Visitors(description=data["description"], sex=data["sex"], user=request.user)
         if("tour" in data.keys()):
             newVisitor.tour = data["tour"]
         newVisitor.save()
@@ -150,7 +165,7 @@ def visitors(request):
     elif(request.method == "DELETE"):
         if(not request.user.is_superuser):
             return HttpResponse("You have to be an administrator to delete a user", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
-        data = json.loads(request.body.decode("utf-8"))
+        data = checkValidJSONInput(request)
         if(not "visitorID" in data.keys()):
             return HttpResponse("visitorName is required", 
                 content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
@@ -158,6 +173,12 @@ def visitors(request):
         userToBeDeleted.delete()
         return HttpResponse("User Deleted", content_type="plain/text",status=status.HTTP_200_OK)
 
+def checkValidJSONInput(request):
+    try:
+        data = json.loads(request.body.decode("utf-8"))   
+    except:
+        return HttpResponse("Valid JSON Input required", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+    return data
 
 
 
