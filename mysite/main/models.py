@@ -78,5 +78,19 @@ class Visitors(models.Model):
     )
     sex = models.CharField(max_length=10, choices=choices)
     tour = models.ManyToManyField(Tours)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-
+class VisitorReview(models.Model):
+    visitor = models.ForeignKey(Visitors, on_delete=models.CASCADE, unique=True)
+    title = models.CharField(null=True, max_length=50)
+    content = models.CharField('description', max_length=500)
+    STAR_RATING = (
+        ('1', '1'),
+        ('2', '2'),
+        ('3', '3'),
+        ('4', '4'),
+        ('5', '5')
+    )
+    stars = models.CharField(max_length=2, choices=STAR_RATING)
+    createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
+    editedAt = models.DateTimeField('date edited', null=True)

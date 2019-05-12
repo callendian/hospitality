@@ -1,12 +1,17 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
+<<<<<<< HEAD
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 import datetime
 from django.db import DatabaseError
 from rest_framework import status
 import json
 from main.models import Guide, Tours, Review
+=======
+from django.http import HttpResponse, HttpResponseRedirect
+
+>>>>>>> 5d2d21ece8ae1a3e42c3d6d52129524dfd199958
 # Create your views here.
 
 
@@ -22,6 +27,7 @@ def home(request):
         else:
                 return HttpResponse('Method not allowed on /.', status=405)
 
+<<<<<<< HEAD
 # Responsible for creating new Tour Guides and allows them to update their profile when they want,
 # also can return a list of all guides that exist in the DB
 @csrf_exempt
@@ -361,4 +367,8 @@ def callDataBase(request):
     except Exception: # Any other exception
         return HttpResponse(BadRequestMessage, status=status.HTTP_400_BAD_REQUEST)
     return data
+=======
+
+
+>>>>>>> 5d2d21ece8ae1a3e42c3d6d52129524dfd199958
 
