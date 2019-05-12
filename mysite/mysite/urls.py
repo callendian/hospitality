@@ -24,5 +24,6 @@ urlpatterns = [
     path('main/', include('main.urls')),
     path('userreview', views.userreview, name="userreview"),
     path('visitors', views.visitors, name="visitors"),
-    path('disputes', views.disputes, name="disputes")
+    path('disputes', views.disputes, name="disputes"),
+    path('disputes/<int:disputeID>/', views.disputes, name="disputes")
 ]

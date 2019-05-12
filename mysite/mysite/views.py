@@ -80,22 +80,21 @@ def userreview(request):
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
 
 @csrf_exempt
-def disputes(request):
+def disputes(request, disputeID):
     if(not request.user.is_authenticated):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
     if(request.method == "GET"):
-        data = checkValidJSONInput(request)
         try:
-            curCase = Disputes.objects.get(id=data["disputeID"])
+            curCase = Disputes.objects.get(id=disputeID)
         except:
             return HttpResponse("Dispute with the given ID doesn't exist.", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
-        print(request.user)
-        print(curCase.guide.creator)
         if(curCase.guide.creator != request.user and curCase.visitor.user != request.user and (not request.user.is_superuser)):
             return HttpResponse("You don't have permission to view this dispute", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
         cur_dict = json.loads(serializers.serialize('json', [curCase, ]))[0]['fields']
-        serializedObj = json.dumps(cur_dict)
-        return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+        print(Visitors.objects.get(id=cur_dict['visitor']).user)
+        cur_dict["visitor"] = Visitors.objects.get(id=cur_dict['visitor']).user
+        cur_dict["guide"] = Guide.objects.get(id=cur_dict['guide']).creator
+        return render(request, '../templates/main/disputes.html', {'dispute': cur_dict}, status=200)
     elif(request.method == "POST"):
         data = checkValidJSONInput(request)
         if("visitorID" not in data.keys()):
@@ -151,6 +150,10 @@ def visitors(request):
         return render(request, '../templates/main/profile.html', {'visitor': currentProf, 'tourArr': tourObj}, status=200)
     elif(request.method == "PATCH"):
         data = checkValidJSONInput(request)
+        try:
+            currentProf = Visitors.objects.get(user=request.user)
+        except:
+            return HttpResponse("You have to be a visitor to modify visitor profile.")
         if("description" in data.keys()):
             currentProf.description = data["description"]
         if("sex" in data.keys()):
@@ -161,11 +164,16 @@ def visitors(request):
         return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
     elif(request.method == "POST"):
         data = checkValidJSONInput(request)
+        try:
+            Visitors.objects.get(user=request.user)
+            return HttpResponse("You are already a visitor.", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        except:
+            pass
         if(not "description" in data.keys()):
-            return HttpResponse("visitorName is required", 
+            return HttpResponse("description is required", 
                 content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
         if(not "sex" in data.keys()):
-            return HttpResponse("Review Content is required", 
+            return HttpResponse("User Sex is Required", 
                 content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
         newVisitor = Visitors(description=data["description"], sex=data["sex"], user=request.user)
         if("tour" in data.keys()):
@@ -175,13 +183,16 @@ def visitors(request):
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
     elif(request.method == "DELETE"):
-        if(not request.user.is_superuser):
-            return HttpResponse("You have to be an administrator to delete a user", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
         data = checkValidJSONInput(request)
         if(not "visitorID" in data.keys()):
             return HttpResponse("visitorName is required", 
                 content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
-        userToBeDeleted = Visitors.objects.filter(id=data["visitorID"])
+        try:
+            userToBeDeleted = Visitors.objects.get(id=data["visitorID"])
+        except:
+            return HttpResponse("Visitor with the given ID doesn't exist", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        if(not request.user.is_superuser and userToBeDeleted.user != request.user):
+            return HttpResponse("You have to be an administrator or owner to delete a user", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
         userToBeDeleted.delete()
         return HttpResponse("User Deleted", content_type="plain/text",status=status.HTTP_200_OK)
 
