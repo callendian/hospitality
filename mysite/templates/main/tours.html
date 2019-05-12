@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %} Home Page {% endblock %}
+
+{% block content %}
+
+<h1>Tours for {{ guide }}</h1>
+<div>
+    {% for tour in tours %}
+    <div class="card border-info" style="width: 18rem;">
+        <div class="card-body">
+            <h5 class="card-title">{{ tour.Guest.first_name }}  {{ tour.Guest.last_name }}</h5>
+            <p class="card-text"><em>Notes to Guide</em></p>
+            <p class="card-text"> {{tour.notesToGuide}} </p>
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"> Start Time: {{tour.Start}} </li>
+            <li class="list-group-item"> End Time: {{tour.End}} </li>
+            <li class="list-group-item">Guest Email: {{tour.Guest.email}} </li>
+            {{tour.id}}
+        </ul>
+    </div>
+    {% endfor %}
+    
+</div>
+
+{% endblock %}
