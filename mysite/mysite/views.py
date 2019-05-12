@@ -137,17 +137,17 @@ def visitors(request):
             currentProf = Visitors.objects.get(user=request.user)
         except:
             return HttpResponse("You have to be a visitor to view visitor review.")
-        print(currentProf)
         cur_dict = json.loads(serializers.serialize('json', [currentProf, ]))[0]['fields']
+        print(cur_dict)
+        print(json.loads(serializers.serialize('json', [User.objects.get(id=cur_dict['user']), ]))[0]['fields']['username'])
         tourObj = []
         for tour in cur_dict["tour"]:
-            print("Wtf")
             currentTour = Tours.objects.get(id=tour)
-            cur_dict = json.loads(serializers.serialize('json', [currentTour, ]))[0]['fields']
-            cur_dict["guide"] = currentTour.Guide.creator
-            cur_dict["start"] = str(currentTour.Start)
-            cur_dict["end"] = str(currentTour.End)
-            tourObj.append(cur_dict)
+            cur_dict2 = json.loads(serializers.serialize('json', [currentTour, ]))[0]['fields']
+            cur_dict2["guide"] = currentTour.Guide.creator
+            cur_dict2["start"] = str(currentTour.Start)
+            cur_dict2["end"] = str(currentTour.End)
+            tourObj.append(cur_dict2)
         return render(request, '../templates/main/profile.html', {'visitor': currentProf, 'tourArr': tourObj}, status=200)
     elif(request.method == "PATCH"):
         data = checkValidJSONInput(request)
