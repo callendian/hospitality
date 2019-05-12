@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseRedirect
-from main.models import Guide, Tours, Review, Countries, States, Cities, Visitors, VisitorReview
+from main.models import Guide, Tours, Review, Countries, States, Cities, Visitors, VisitorReview, Disputes
 from rest_framework import status
 from mysite.serializer import VisitorReview
 import json
@@ -94,9 +94,22 @@ def disputes(request):
         if("visitorID" not in data.keys()):
             return HttpResponse("Input valid visitorID", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
         if("guideID" not in data.keys()):
-            return HttpResponse("Input valid guideID", content_typ="plain/text", status=status.HTTP_400_BAD_REQUEST)
-        
-
+            return HttpResponse("Input valid guideID", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        if("description" not in data.keys()):
+            return HttpResponse("Input valid description", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        newDispute = Disputes(visitor=Visitors.objects.get(id=data["visitorId"]), 
+                                guide=Guide.objects.get(id=data["guideID"], description=data["description"]))
+        newDispute.save()
+        cur_dict = json.loads(serializers.serialize('json', [newDispute, ]))[0]['fields']
+        serializedObj = json.dumps(cur_dict)
+        return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+    elif(request.method == "DELETE"):
+        data = json.loads(request.body.decode("utf-8"))   
+        if("disputeID" not in data.keys()):
+            return HttpResponse("Input valid disputeID", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        curDispute = Disputes.objects.get(id=data["disputeID"])
+        curDispute.delete()
+        return HttpResponse("Dispute successfully resolved", content_type="plain/text", status=status.HTTP_200_OK)
 def visitors(request):
     if(not request.user.is_authenticated):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
@@ -105,7 +118,7 @@ def visitors(request):
         currentProf = Visitors.objects.get(user=request.user)
         print(currentProf)
         if(currentProf == None):
-        return HttpResponse("You have to be a visitor to view visitor review.")
+            return HttpResponse("You have to be a visitor to view visitor review.")
         cur_dict = json.loads(serializers.serialize('json', [currentProf, ]))[0]['fields']
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, content_type="application/json", status=status.HTTP_200_OK)
@@ -116,7 +129,7 @@ def visitors(request):
         if("sex" in data.keys()):
             currentProf.sex = data["sex"]
         currentProf.save()
-        cur_dict = json.loads(serializers.serialize('json', [allReviews, ]))[0]['fields']
+        cur_dict = json.loads(serializers.serialize('json', [currentProf, ]))[0]['fields']
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
     elif(request.method == "POST"):

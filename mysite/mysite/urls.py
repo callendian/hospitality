@@ -23,5 +23,6 @@ urlpatterns = [
     path('', include('main.urls')),
     path('main/', include('main.urls')),
     path('userreview', views.userreview, name="userreview"),
-    path('visitors', views.userreview, name="visitors")
+    path('visitors', views.visitors, name="visitors"),
+    path('disputes', views.disputes, name="disputes")
 ]
