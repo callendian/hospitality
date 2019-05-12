@@ -17,7 +17,7 @@ class Guide(models.Model):
 class Tours(models.Model):
     Guest = models.ForeignKey(User, on_delete=models.CASCADE)
     Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
-    Start = models.DateTimeField()
+    Start = models.DateTimeField('start_time')
     End = models.DateTimeField('end_time')
     createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
     editedAt = models.DateTimeField(auto_now=True)

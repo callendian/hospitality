@@ -7,6 +7,7 @@ from rest_framework import status
 from mysite.serializer import VisitorReview
 import json
 from django.core import serializers
+
 @csrf_exempt
 def userreview(request):
         if(not request.user.is_authenticated):
@@ -77,6 +78,7 @@ def userreview(request):
             cur_dict["visitor_name"] = data["visitorName"]
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+
 @csrf_exempt
 def disputes(request):
     if(not request.user.is_authenticated):
@@ -125,20 +127,30 @@ def disputes(request):
             return HttpResponse("You don't have permission to view this dispute", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
         curCase.delete()
         return HttpResponse("Dispute successfully resolved", content_type="plain/text", status=status.HTTP_200_OK)
+
+@csrf_exempt
 def visitors(request):
     if(not request.user.is_authenticated):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
-
     if(request.method == "GET"):
-        currentProf = Visitors.objects.get(user=request.user)
-        print(currentProf)
-        if(currentProf == None):
+        try:
+            currentProf = Visitors.objects.get(user=request.user)
+        except:
             return HttpResponse("You have to be a visitor to view visitor review.")
+        print(currentProf)
         cur_dict = json.loads(serializers.serialize('json', [currentProf, ]))[0]['fields']
-        serializedObj = json.dumps(cur_dict)
-        return HttpResponse(serializedObj, content_type="application/json", status=status.HTTP_200_OK)
+        tourObj = []
+        for tour in cur_dict["tour"]:
+            print("Wtf")
+            currentTour = Tours.objects.get(id=tour)
+            cur_dict = json.loads(serializers.serialize('json', [currentTour, ]))[0]['fields']
+            cur_dict["guide"] = currentTour.Guide.creator
+            cur_dict["start"] = str(currentTour.Start)
+            cur_dict["end"] = str(currentTour.End)
+            tourObj.append(cur_dict)
+        return render(request, '../templates/main/profile.html', {'visitor': currentProf, 'tourArr': tourObj}, status=200)
     elif(request.method == "PATCH"):
-        data =checkValidJSONInput(request)
+        data = checkValidJSONInput(request)
         if("description" in data.keys()):
             currentProf.description = data["description"]
         if("sex" in data.keys()):
