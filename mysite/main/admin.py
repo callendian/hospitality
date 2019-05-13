@@ -1,5 +1,6 @@
 from django.contrib import admin
-from main.models import Guide, Tours, Review, Countries, States, Cities, Visitors, VisitorReview
+from main.models import (Guide, Tours, Review, 
+Countries, States, Cities, Visitors, VisitorReview, Disputes)
 
 class GuideAdmin(admin.ModelAdmin):
     pass
@@ -21,6 +22,9 @@ class VisitorsAdmin(admin.ModelAdmin):
 
 class VisitorReviewAdmin(admin.ModelAdmin):
     pass
+
+class DisputesAdmin(admin.ModelAdmin):
+    pass
     
 admin.site.register(Guide, GuideAdmin)
 admin.site.register(Tours, ToursAdmin)
@@ -28,3 +32,4 @@ admin.site.register(Countries, CountriesAdmin)
 admin.site.register(Cities, CitiesAdmin)
 admin.site.register(Visitors, VisitorsAdmin)
 admin.site.register(VisitorReview, VisitorReviewAdmin)
+admin.site.register(Disputes, DisputesAdmin)

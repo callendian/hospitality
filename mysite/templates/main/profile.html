@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %} Profile Page {% endblock %}
+
+{% block content %}
+<h2>User Profile</h2>
+<h4>User: {{ visitor.user }}</h4>
+<h4>Description: {{ visitor.description }}</h4>
+<h4>Sex: 
+    {% if visitor.sex == 'M' %}
+        Male
+    {% endif %}
+    {% if visitor.sex == 'F' %}
+        Female
+    {% endif %}
+    {% if visitor.sex == 'O' %}
+        Other
+    {% endif %}</h4>
+{% for tour in tourArr %}
+<h4>Tour</h4>
+<ul> 
+    <li>Guest: {{visitor.user}}</li>
+    <li>Guide: {{tour.guide}}</li>
+    <li>Start: {{tour.start}}</li>
+    <li>End: {{tour.end}}</li>
+    <li>Notes To Guide: {{tour.notesToGuide}}</li>
+</ul>
+
+{% endfor %}
+{% endblock %}
+
