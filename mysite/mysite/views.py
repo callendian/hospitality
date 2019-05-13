@@ -87,9 +87,9 @@ def disputes(request, disputeID):
         try:
             curCase = Disputes.objects.get(id=disputeID)
         except:
-            return HttpResponse("Dispute with the given ID doesn't exist.", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse("Dispute with the given ID doesn't exist.", status=status.HTTP_400_BAD_REQUEST)
         if(curCase.guide.creator != request.user and curCase.visitor.user != request.user and (not request.user.is_superuser)):
-            return HttpResponse("You don't have permission to view this dispute", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
+            return HttpResponse("You don't have permission to view this dispute", status=status.HTTP_401_UNAUTHORIZED)
         cur_dict = json.loads(serializers.serialize('json', [curCase, ]))[0]['fields']
         print(Visitors.objects.get(id=cur_dict['visitor']).user)
         cur_dict["visitor"] = Visitors.objects.get(id=cur_dict['visitor']).user
@@ -98,16 +98,16 @@ def disputes(request, disputeID):
     elif(request.method == "POST"):
         data = checkValidJSONInput(request)
         if("visitorID" not in data.keys()):
-            return HttpResponse("Input valid visitorID", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse("Input valid visitorID",  status=status.HTTP_400_BAD_REQUEST)
         if("guideID" not in data.keys()):
-            return HttpResponse("Input valid guideID", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse("Input valid guideID", status=status.HTTP_400_BAD_REQUEST)
         if("description" not in data.keys()):
-            return HttpResponse("Input valid description", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse("Input valid description",status=status.HTTP_400_BAD_REQUEST)
         try:
             guide = Guide.objects.get(id=data["guideID"])
             visitor = Visitors.objects.get(id=data["visitorID"])
         except:
-            return HttpResponse("Guide or visitor not found.", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse("Guide or visitor not found.", status=status.HTTP_400_BAD_REQUEST)
         newDispute = Disputes(visitor=visitor, 
                                 guide=guide, description=data["description"])
         newDispute.save()
@@ -117,15 +117,15 @@ def disputes(request, disputeID):
     elif(request.method == "DELETE"):
         data = checkValidJSONInput(request)
         if("disputeID" not in data.keys()):
-            return HttpResponse("Input valid disputeID", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse("Input valid disputeID", status=status.HTTP_400_BAD_REQUEST)
         try:
             curCase = Disputes.objects.get(id=data["disputeID"])
         except:
-            return HttpResponse("Dispute with the given ID doesn't exist.", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse("Dispute with the given ID doesn't exist.", status=status.HTTP_400_BAD_REQUEST)
         if(curCase.guide.creator != request.user and curCase.visitor.user != request.user and (not request.user.is_superuser)):
-            return HttpResponse("You don't have permission to view this dispute", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
+            return HttpResponse("You don't have permission to view this dispute", status=status.HTTP_401_UNAUTHORIZED)
         curCase.delete()
-        return HttpResponse("Dispute successfully resolved", content_type="plain/text", status=status.HTTP_200_OK)
+        return HttpResponse("Dispute successfully resolved", status=status.HTTP_200_OK)
 
 @csrf_exempt
 def visitors(request):
@@ -166,7 +166,7 @@ def visitors(request):
         data = checkValidJSONInput(request)
         try:
             Visitors.objects.get(user=request.user)
-            return HttpResponse("You are already a visitor.", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse("You are already a visitor.", status=status.HTTP_400_BAD_REQUEST)
         except:
             pass
         if(not "description" in data.keys()):
@@ -194,13 +194,14 @@ def visitors(request):
         if(not request.user.is_superuser and userToBeDeleted.user != request.user):
             return HttpResponse("You have to be an administrator or owner to delete a user", content_type="plain/text", status=status.HTTP_401_UNAUTHORIZED)
         userToBeDeleted.delete()
-        return HttpResponse("User Deleted", content_type="plain/text",status=status.HTTP_200_OK)
+        return HttpResponse("User Deleted", status=status.HTTP_200_OK)
+
 
 def checkValidJSONInput(request):
     try:
         data = json.loads(request.body.decode("utf-8"))   
     except:
-        return HttpResponse("Valid JSON Input required", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse("Valid JSON Input required", status=status.HTTP_400_BAD_REQUEST)
     return data
 
 
