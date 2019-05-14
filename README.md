@@ -295,9 +295,9 @@ Output:
 The given reviews is deleted.
 
 
-## Disputes
-### '/disputes/<int:disputeID>'
-#### GET:
+##Disputes:
+###'/disputes/<int:disputeID>':
+####GET:
 The GET end point will return the dispute that whose ID is included in the path parameter. The dispute will include information such as the visitors implicated, the guide, and the description of the dispute. This method will be the page where the detailed information about a particular dispute. 
 
 Possible Errors:
@@ -306,8 +306,8 @@ Possible Errors:
 
 
 
-## Disputes
-### '/disputes/'
+##Disputes:
+###'/disputes/':
 #####POST:
 This POST end point will create a dispute that will take in the visitor username and the guide username. It will also take in the description of the dispute between the two people. It will return a JSON form of the dispute that is being added to the database. This will be the main way the guide and the users file a complain about the other party. 
 Possible Errors:
@@ -350,9 +350,9 @@ Possible Errors:
 
 Dispute successfully resolveds
 
-## Visitors
-### '/visitors'
-#### GET:
+##Visitors
+###'/visitors'
+####GET:
 The GET method will return the information regarding a particular visitor. It will list the username, description, sex and finally a list of all the tours that the visitor is signed in. This will serve as the profile page for the users. 
 
 

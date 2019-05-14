@@ -8,11 +8,14 @@ from mysite.serializer import VisitorReview
 import json
 from django.core import serializers
 
+'''Responsible for creating, editing, deleting and viewing user review. Only the visitor can view
+the user review and only the guide can write the user review. '''
 @csrf_exempt
 def userreview(request):
         if(not request.user.is_authenticated):
                 return HttpResponse("Unauthorized. Please Sign in", 
                                     status=status.HTTP_401_UNAUTHORIZED)
+        #Returns the review of the logged in user. 
         if(request.method == "GET"):
             currentProf = Visitors.objects.get(user=request.user)
             if(currentProf == None):
@@ -27,6 +30,7 @@ def userreview(request):
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, 
                                 content_type="application/json", status=status.HTTP_200_OK)
+        #Write a review for a particular user (for Guides)
         elif(request.method == "POST"):
             if(not request.user.is_authenticated):
                 return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
@@ -60,6 +64,7 @@ def userreview(request):
             cur_dict["visitor"] = formatUser(User.objects.get(id=cur_dict["visitor"]))
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+        #Delete a previously written review
         elif(request.method == "DELETE"):
             isGuide = Guide.objects.filter(creator=request.user)
             if(len(isGuide) == 0):
@@ -75,6 +80,7 @@ def userreview(request):
             return HttpResponse("The given reviews is deleted.", 
                                 content_type="plain/text",
                                 status=status.HTTP_200_OK)
+        #Edit a previously written review. 
         elif(request.method == "PATCH"):
             if(not request.user.is_authenticated):
                 return HttpResponse("Unauthorized. Please Sign in", 
@@ -90,6 +96,7 @@ def userreview(request):
             allReviews = VisitorReview.objects.get(visitor=Visitors.objects.get(
                                                             user=User.objects.get(
                                                                 username=data["visitorName"])))
+            #Handle the optional parameters
             if("content" in data.keys()):
                 allReviews.content = data["content"]
             if("title" in data.keys()):
@@ -102,6 +109,7 @@ def userreview(request):
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
 
+'''Responsible for rendering a webpage that displays dispute information given a disputeID.'''
 @csrf_exempt
 def showDisputes(request, disputeID):
     if(not request.user.is_authenticated):
@@ -121,10 +129,13 @@ def showDisputes(request, disputeID):
         cur_dict["guide"] = Guide.objects.get(id=cur_dict['guide']).creator
         return render(request, '../templates/main/disputes.html', {'dispute': cur_dict}, status=200)
     
+'''Responsible for creating and resolving a dispute between guide and visitors. Only accessible
+to the visitor and the guide implicated on the dispute'''
 @csrf_exempt
 def disputes(request):
     if(not request.user.is_authenticated):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
+    #Create a new dispute that takes in the visitor's Username and guide's username
     if(request.method == "POST"):
         data = checkValidJSONInput(request)
         if("visitorUsername" not in data.keys()):
@@ -146,6 +157,7 @@ def disputes(request):
         cur_dict["visitor"] = formatUser(visitor.user)
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+    #Delete a dispute given a dispute ID. 
     elif(request.method == "DELETE"):
         data = checkValidJSONInput(request)
         if("disputeID" not in data.keys()):
@@ -163,11 +175,15 @@ def disputes(request):
         curCase.delete()
         return HttpResponse("Dispute successfully resolved", status=status.HTTP_200_OK)
 
-
+'''Responsible for creating a new visitor instance in the database, editing a visitor's
+instance and deleting a visitor's instance. It is also resposible for populating
+a webpage with the data from the database.
+'''
 @csrf_exempt
 def visitors(request):
     if(not request.user.is_authenticated):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
+    #Responsible for populating a webpage with the data from the database. 
     if(request.method == "GET"):
         try:
             currentProf = Visitors.objects.get(user=request.user)
@@ -185,6 +201,7 @@ def visitors(request):
         return render(request, '../templates/main/profile.html', 
                      {'visitor': currentProf, 'tourArr': tourObj}, 
                      status=200)
+    #Responsible for changing an instance of a visitor with the data inputted in the request
     elif(request.method == "PATCH"):
         data = checkValidJSONInput(request)
         try:
@@ -201,6 +218,7 @@ def visitors(request):
         cur_dict["user"] = formatUser(User.objects.get(id=cur_dict["user"]))
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+    #Resposible for creating a new visitor instance with the data inputted in the request. 
     elif(request.method == "POST"):
         data = checkValidJSONInput(request)
         try:
@@ -220,6 +238,7 @@ def visitors(request):
         cur_dict["user"] = formatUser(User.objects.get(id=cur_dict["user"]))
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+    #Responsible for deleting a new visitor instance given a visitor ID
     elif(request.method == "DELETE"):
         data = checkValidJSONInput(request)
         if(not "visitorID" in data.keys()):
@@ -243,7 +262,7 @@ def visitors(request):
         userToBeDeleted.delete()
         return HttpResponse("User Deleted", status=status.HTTP_200_OK)
 
-
+#Check if the JSON input in the request is valid json. 
 def checkValidJSONInput(request):
     try:
         data = json.loads(request.body.decode("utf-8"))   
