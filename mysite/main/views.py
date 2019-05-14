@@ -365,8 +365,7 @@ def callDataBase(request):
         return HttpResponse(BadRequestMessage, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
+@csrf_exempt
 def search(request):
    if not request.user or not request.user.is_authenticated:
          return HttpResponse("Unauthorized.", status=401)
@@ -378,7 +377,6 @@ def search(request):
 
    elif request.method == "POST":
       # POST: search trips with given form data
-      form = TourSearchForm(request.POST)
       data = parse_qs(request.body.decode("utf-8"))
 
       tourType = data["tourType"][0]
@@ -393,7 +391,7 @@ def search(request):
             days__gte=min_days, 
             days__lte=max_days
          ).values(
-            'id', 'booking', 'description', 
+            'id', 'description', 
             'days', 'price', 
             'guide__first_name', 
             'guide__last_name', 
@@ -401,8 +399,72 @@ def search(request):
             'guide__gender'
          )
 
-      # return JsonResponse(list(search_results), safe=False)
       return render(request, "main/search.html", {"form": TourSearchForm(), "search_results": list(search_results)})
 
    else:
       return HttpResponse("Method not allowed on this route", status=405)
+
+
+@csrf_exempt
+def saved(request):
+   if not request.user or not request.user.is_authenticated:
+         return HttpResponse("Unauthorized.", status=401)
+   
+   visitor = Visitor.objects.get(user=request.user)
+
+   if request.method == "GET":
+      # GET: form for searching trips
+      saved = getSavedToursForVisitor(visitor)
+      return render(request, "main/saved.html", {"saved": list(saved)})
+
+   elif request.method == "POST":
+      # POST: search trips with given form data
+      data = parse_qs(request.body.decode("utf-8"))
+      tour_id = int(data["tour_id"][0])
+
+      savedTour = SavedTour()
+      savedTour.tour = Tour.objects.get(pk=tour_id)
+      savedTour.visitor = visitor
+
+      try:
+         savedTour.save()
+      except:
+         return HttpResponse("Error saving tour.", status=400)
+      
+      saved = getSavedToursForVisitor(visitor)
+      return render(request, "main/saved.html", {"saved": list(saved)})
+   
+   elif request.method == "DELETE":
+      # DELETE: remove from bookmarked tours
+      data = json.loads(request.body.decode("utf-8"))
+      savedTour_id = data["savedtour_id"]
+
+      try:
+         savedTour = SavedTour.objects.select_related('visitor').get(pk=savedTour_id)
+         if savedTour.visitor != visitor:
+            return HttpResponse("Forbidden.", status=403)
+         else:
+            savedTour.delete()
+      
+      except:
+         saved = getSavedToursForVisitor(visitor)
+         return render(request, "main/saved.html", {"saved": list(saved)})
+
+   else:
+      return HttpResponse("Method not allowed on this route", status=405)
+
+
+def getSavedToursForVisitor(visitor):
+   saved = SavedTour.objects.select_related('tour__city').select_related('tour__guide').filter(visitor=visitor).values(
+      'id',
+      'tour_id', 
+      'tour__city__name',
+      'tour__description',
+      'tour__days',
+      'tour__price',
+      'tour__guide__first_name',
+      'tour__guide__last_name',
+      'tour__guide__email',
+      'tour__guide__gender'
+   )
+   return saved

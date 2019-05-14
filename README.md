@@ -210,3 +210,123 @@ Input:
 output:
 "Tour Deleted"
 
+
+
+## Search
+### '/search/'
+#### GET:
+This endpoint will display a form through which visitors can look for tours/guides.
+
+Possible Errors:
+1) 401, Unauthorized, i.e. you must be a user who is signed in in order to look for tours
+
+#### Post:
+This endpoint will process the search form filled in by the users and return in HTML the 
+formatted search results.
+
+Possible Errors:
+1) 401, Unauthorized, i.e. you must be a user who is signed in in order to look for tours
+
+Example Interaction: 
+Input:
+{
+    "tourType": "General",
+    "city": "Seattle",
+    "min_days": "2",
+    "max_days": "4",
+}
+
+Output: HTML, only results section shown for example
+
+<h2>Results</h2>
+<ul>
+    <li style="background-color:lightblue">
+        <p>
+            <strong>Guide</strong>: Vincent Widjaya, M,
+            vwidjaya@uw.edu
+            <br><strong>Description</strong>: Testing
+            <br><strong>Duration</strong>: 3 days
+            <br><strong>Price</strong>: $100.00
+        </p>
+        <form action="/saved/" method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="xZ68yfcSxFiLlnSB9Atoc5YI5ttemWpKS6hF86W3GXLPCZkLrz3iHj2fOCaZstv5">
+            <input type="hidden" name="tour_id" value="1">
+            <input type="submit" value="Save">
+        </form>
+        <br>
+        <form action="/tour/1" method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="xZ68yfcSxFiLlnSB9Atoc5YI5ttemWpKS6hF86W3GXLPCZkLrz3iHj2fOCaZstv5">
+            <input type="submit" value="Book This Guide">
+        </form>
+    </li>
+    
+</ul>
+
+
+
+
+## Saved
+### '/saved/'
+#### GET:
+This endpoint will display the list of the user's saved tours.
+
+Possible Errors:
+1) 401, Unauthorized, i.e. you must be a user who is signed in in order to have saved tours
+
+#### Post:
+This endpoint will save a tour and refresh the list of saved tours through an HTML response.
+This is normally accessed through a Saved button from something like the search page.
+
+Possible Errors:
+1) 401, Unauthorized, i.e. you must be a user who is signed in in order to have saved tours
+2) 400, Bad Request, error saving database for some reason (invalid params)
+
+Example Interaction: 
+Input:
+{
+    "tour_id_": 1
+}
+
+Output: HTML, only saved section shown for example
+
+<h1>Saved</h1>
+<ul>
+    <li style="background-color:lightblue">
+        <p>
+            <strong>Guide</strong>: Vincent Widjaya, 
+            M, vwidjaya@uw.edu
+            <br><strong>City</strong>: Seattle
+            <br><strong>Description</strong>: Testing
+            <br><strong>Duration</strong>: 3 days
+            <br><strong>Price</strong>: $100.00
+        </p>
+        <form action="/saved/" method="get">
+            <!-- supposed to be delete but tbd in future, instead delete through api endpoint -->
+            <input type="hidden" name="savedtour_id" value="6">
+            <input type="submit" value="Unsave">
+        </form>
+        <br>
+        <form action="/tour/1" method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="Z4mHxzGCZ2khTbugoAH17WJHLUhUG0sMkbxe7qqN8kNlaNWqGzhVCaNeu3YFMxy7">
+            <input type="submit" value="Book This Tour">
+        </form>
+    </li>
+</ul>
+
+
+#### DELETE:
+The last endpoint removes a tour from the list of saved ones. 
+
+Possible Errors:
+1) 401, Unauthorized, i.e. you must be a user who is signed in in order to have saved tours
+2) 403, Forbidden, user is not the visitor that saved the specified tour
+
+Example Interaction:
+Input:
+{
+    "savedtour_id" : "1"
+}
+
+output: HTML, only saved section shown for example
+<h1>Saved</h1>
+<p>Nothing saved.</p>

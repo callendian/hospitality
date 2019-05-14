@@ -15,4 +15,3 @@ class TourSearchForm(forms.ModelForm):
     class Meta:
         model = Tour
         exclude = ['guide', 'description', 'price', 'days']
-    
