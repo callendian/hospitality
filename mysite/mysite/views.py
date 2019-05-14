@@ -29,22 +29,28 @@ def userreview(request):
             if(len(isGuide) == 0):
                 return HttpResponse("You have to be a guide to write visitor review.", status=status.HTTP_401_UNAUTHORIZED)
             data = checkValidJSONInput(request)
-            #if(allReviews != None):
-            #    return HttpResponse("You have already written review for this visitor", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
+
             if(not "visitorName" in data.keys()):
                 return HttpResponse("visitorName is required", 
                     content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
             if(not "content" in data.keys()):
                 return HttpResponse("Review Content is required", 
                     content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
-            newReview = VisitorReview(visitor=Visitors.objects.get(name=data["visitorName"]), content=data["content"])
+            try:
+                newReview = VisitorReview(visitor=Visitors.objects.get(name=data["visitorName"]), content=data["content"])
+            except:
+                return HttpResponse("The given user doesn't exist", status=status.HTTP_400_BAD_REQUEST)
             if("title" in data.keys()):
                 newReview.title = data["title"]
             if("stars" in data.keys()):
                 newReview.stars = data["stars"]
-            newReview.save()
+            try:
+                newReview.save()
+            except:
+                return HttpResponse("You have already written a review for this person", status=status.HTTP_400_BAD_REQUEST)
             cur_dict = json.loads(serializers.serialize('json', [newReview, ]))[0]['fields']
             cur_dict["visitor_name"] = data["visitorName"]
+            cur_dict["visitor"] = formatUser(User.objects.get(id=cur_dict["visitor"]))
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
         elif(request.method == "DELETE"):
@@ -57,7 +63,7 @@ def userreview(request):
                     content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
             allReviews = VisitorReview.objects.filter(visitor=Visitors.objects.get(name=data["visitorName"]))
             allReviews.delete()
-            return HttpResponse("All Reviews Deleted.", content_type="plain/text",status=status.HTTP_200_OK)
+            return HttpResponse("The given reviews is deleted.", content_type="plain/text",status=status.HTTP_200_OK)
         elif(request.method == "PATCH"):
             if(not request.user.is_authenticated):
                 return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
@@ -77,7 +83,7 @@ def userreview(request):
                 allReviews.stars = data["stars"]
             allReviews.save()
             cur_dict = json.loads(serializers.serialize('json', [allReviews, ]))[0]['fields']
-            cur_dict["visitor_name"] = data["visitorName"]
+            cur_dict["visitor"] = formatUser(User.objects.get(id=cur_dict["visitor"]))
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
 
@@ -206,6 +212,12 @@ def checkValidJSONInput(request):
         return HttpResponse("Valid JSON Input required", status=status.HTTP_400_BAD_REQUEST)
     return data
 
+# helper function that formats user data into a dictionary
+def formatUser(user):
+    return ({'username' : user.username, 
+            'first_name' : user.first_name,  
+            'last_name' : user.last_name, 
+            'email' : user.email})
 
 
 

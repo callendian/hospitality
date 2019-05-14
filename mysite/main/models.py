@@ -68,6 +68,7 @@ class Cities(models.Model):
     city_code = models.CharField(null=True, max_length=5)
 
 class Visitors(models.Model):
+    name = models.CharField('name', max_length=22, default="default")
     description = models.CharField('description', max_length=250)
     createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
     editedAt = models.DateTimeField(auto_now=True)

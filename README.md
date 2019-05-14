@@ -235,6 +235,20 @@ Input:
 }
 
 Output: 
+{
+    "stars": "",
+    "editedAt": "2019-05-14T04:29:27.647Z",
+    "createdAt": "2019-05-13T21:29:18.341",
+    "title": null,
+    "visitor": {
+        "username": "csofian",
+        "first_name": "",
+        "email": "cns24@uw.edu",
+        "last_name": ""
+    },
+    "visitor_name": "csofian",
+    "content": "he is da best"
+}
 
 
 ####PATCH:
@@ -248,10 +262,24 @@ Example Interaction:
 Input:
 {
 	"visitorName": "csofian", 
-	"content": "he is not da best"
+	"content": "he is not da best",
+	"stars": "5",
+	"title": "Chris is the best"
 }
-
 Output:
+{
+    "visitor": {
+        "email": "cns24@uw.edu",
+        "username": "csofian",
+        "first_name": "",
+        "last_name": ""
+    },
+    "createdAt": "2019-05-13T21:29:18.341Z",
+    "stars": "5",
+    "editedAt": "2019-05-14T04:32:01.978Z",
+    "title": "Chris is the best",
+    "content": "he is not da best"
+}
 
 ###DELETE:
 The delete method will allow the existing guide to delete their review of a particular users. It will take in a dispute id and it will delete that particular dispute. The only person that can delete this dispute is the user that file the dispute or the guide in the dispute.
@@ -264,6 +292,9 @@ Input:
 {
 	"visitorName": "csofian"
 }
+
+Output:
+The given review is deleted.
 
 
 ## Disputes
