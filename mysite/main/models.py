@@ -64,6 +64,13 @@ class Tour(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
 
 
+# Represents bookmarked/planned tours
+class SavedTour(models.Model):
+    visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE)
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE)
+    createdAt = models.DateTimeField(auto_now_add=True)
+
+
 # Individual appointments of tour guides and visitors
 class Booking(models.Model):
     tour = models.ForeignKey('Tour', on_delete=models.CASCADE)
