@@ -2,11 +2,13 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-import datetime
 from django.db import DatabaseError
 from rest_framework import status
+import datetime
 import json
+from urllib.parse import parse_qs
 from main.models import *
+from .forms import TourSearchForm
 
 # Create your views here.
 
@@ -361,3 +363,46 @@ def callDataBase(request):
         return HttpResponse(JSONDecodeFailMessage, status=status.HTTP_400_BAD_REQUEST)
     except Exception: # Any other exception
         return HttpResponse(BadRequestMessage, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+def search(request):
+   if not request.user or not request.user.is_authenticated:
+         return HttpResponse("Unauthorized.", status=401)
+
+   if request.method == "GET":
+      # GET: form for searching trips
+      form = TourSearchForm()
+      return render(request, "main/search.html", {"form": form})
+
+   elif request.method == "POST":
+      # POST: search trips with given form data
+      form = TourSearchForm(request.POST)
+      data = parse_qs(request.body.decode("utf-8"))
+
+      tourType = data["tourType"][0]
+      city = data["city"][0]
+      min_days = int(data["min_days"][0])
+      max_days = int(data["max_days"][0])
+
+      search_results = Tour.objects.select_related('guide')\
+         .filter(
+            tourType__name=tourType, 
+            city__name=city, 
+            days__gte=min_days, 
+            days__lte=max_days
+         ).values(
+            'id', 'booking', 'description', 
+            'days', 'price', 
+            'guide__first_name', 
+            'guide__last_name', 
+            'guide__email', 
+            'guide__gender'
+         )
+
+      # return JsonResponse(list(search_results), safe=False)
+      return render(request, "main/search.html", {"form": TourSearchForm(), "search_results": list(search_results)})
+
+   else:
+      return HttpResponse("Method not allowed on this route", status=405)
