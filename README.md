@@ -236,20 +236,18 @@ Input:
 
 Output: 
 {
-    "stars": "",
-    "editedAt": "2019-05-14T04:29:27.647Z",
-    "createdAt": "2019-05-13T21:29:18.341",
     "title": null,
+    "createdAt": "2019-05-13T21:40:56.990",
+    "stars": "",
+    "content": "he is da best",
     "visitor": {
         "username": "csofian",
-        "first_name": "",
+        "last_name": "",
         "email": "cns24@uw.edu",
-        "last_name": ""
+        "first_name": ""
     },
-    "visitor_name": "csofian",
-    "content": "he is da best"
+    "editedAt": "2019-05-14T04:41:08.286Z"
 }
-
 
 ####PATCH:
 The patch endpoint will allow the existing guide to edit the review they wrote of a particular user. It will modify the existing records for the userreview table. 
@@ -268,17 +266,17 @@ Input:
 }
 Output:
 {
-    "visitor": {
-        "email": "cns24@uw.edu",
-        "username": "csofian",
-        "first_name": "",
-        "last_name": ""
-    },
-    "createdAt": "2019-05-13T21:29:18.341Z",
-    "stars": "5",
-    "editedAt": "2019-05-14T04:32:01.978Z",
     "title": "Chris is the best",
-    "content": "he is not da best"
+    "createdAt": "2019-05-13T21:40:56.990Z",
+    "stars": "5",
+    "content": "he is not da best",
+    "visitor": {
+        "username": "csofian",
+        "last_name": "",
+        "email": "cns24@uw.edu",
+        "first_name": ""
+    },
+    "editedAt": "2019-05-14T04:41:43.501Z"
 }
 
 ###DELETE:
@@ -294,24 +292,26 @@ Input:
 }
 
 Output:
-The given review is deleted.
+The given reviews is deleted.
 
 
 ## Disputes
-### '/disputes'
+### '/disputes/<int:disputeID>'
 #### GET:
-The GET end point will return the dispute that whose ID is included in the path parameter. The dispute will include information such as the visitors implicated, the guide, 
-The GET end point will return the review for the current user that is logged in. This review will include information such as the visitor's name, the title of the review, the description of the review and the star rating. This review would be written by the guide after the end of a tour for the visitors. This data would be returned in a JSON format.
+The GET end point will return the dispute that whose ID is included in the path parameter. The dispute will include information such as the visitors implicated, the guide, and the description of the dispute. This method will be the page where the detailed information about a particular dispute. 
 
 Possible Errors:
-1) 401, Unauthorized access: The user is not logged in, or if the logged in user is not a visitor. 
+1) 400, if the dispute with the given id doesn't exist
+1) 401, Unauthorized access: The user is not logged in, or if the logged in user is not the implicated visitor or guide. 
 
 
+
+## Disputes
+### '/disputes/'
 #####POST:
-The post endpoint will take in JSON data and parse it and use it to create a new user review. The required information is visitorName and content, the optional paramenters are title and star rating. When guides write a review about the user, they will use this method. 
-
+This POST end point will create a dispute that will take in the visitor username and the guide username. It will also take in the description of the dispute between the two people. It will return a JSON form of the dispute that is being added to the database. This will be the main way the guide and the users file a complain about the other party. 
 Possible Errors:
-1. 400, Bad request when content or description is not included in the JSON parameters
+1. 400, Bad request when the required parameters is not included in the JSON parameters or when the guide or visitors with the given parameters can't be found
 2. 401, When the users is not logged in or if they are not a guide then they shouldn't be able to write a review
 
 Example Interaction:
@@ -322,29 +322,31 @@ Input:
 }
 
 Output: 
-
-
-####PATCH:
-The patch endpoint will allow the existing guide to edit the review they wrote of a particular user. It will modify the existing records for the userreview table. 
-
-Possible Errors:
-1). 401 - when the user is not logged in or the user is not a guide
-2). 400 - If required parameters (visitorName) is not included in the input.
-
-Example Interaction:
-Input:
 {
-	"visitorName": "csofian", 
-	"content": "he is not da best"
+    "editedAt": "2019-05-14T05:27:20.067Z",
+    "createdAt": "2019-05-13T22:26:10.127",
+    "visitor": {
+        "last_name": "",
+        "first_name": "",
+        "email": "cns24@uw.edu",
+        "username": "csofian"
+    },
+    "guide": {
+        "last_name": "wei",
+        "first_name": "wei",
+        "email": "wei",
+        "username": "wei"
+    },
+    "description": "He is not handsome"
 }
 
-Output:
 
 ###DELETE:
-The delete method will allow the existing guide to delete their review of a particular users. It will take in a dispute id and it will delete that particular dispute. The only person that can delete this dispute is the user that file the dispute or the guide in the dispute.
+The delete method will allow either the user, the guide or the admin to delete the dispute. This will serve as a dispute resolution function in our website. If it is successful, the user will get a message saying that the dispute has been resolved. 
 
 Possible Errors:
-1). 400 - If the required parameters (visitorName) is not included in the input.
+1). 400 - if the dispute with the given doesn't exist, or if it is not included in the parameters. 
+2). 401 - If the user is not the guide or the visitor implicated, or the admin. 
 
 
 
