@@ -220,7 +220,7 @@ Possible Errors:
 1) 401, Unauthorized access: The user is not logged in, or if the logged in user is not a visitor. 
 
 
-#####POST:
+##### POST:
 The post endpoint will take in JSON data and parse it and use it to create a new user review. The required information is visitorName and content, the optional paramenters are title and star rating. When guides write a review about the user, they will use this method. 
 
 Possible Errors:
@@ -249,7 +249,7 @@ Output:
     "editedAt": "2019-05-14T04:41:08.286Z"
 }
 
-####PATCH:
+#### PATCH:
 The patch endpoint will allow the existing guide to edit the review they wrote of a particular user. It will modify the existing records for the userreview table. 
 
 Possible Errors:
@@ -279,7 +279,7 @@ Output:
     "editedAt": "2019-05-14T04:41:43.501Z"
 }
 
-###DELETE:
+#### DELETE:
 The delete method will allow the existing guide to delete their review of a particular users. It will take in a dispute id and it will delete that particular dispute. The only person that can delete this dispute is the user that file the dispute or the guide in the dispute.
 
 Possible Errors:
@@ -295,9 +295,9 @@ Output:
 The given reviews is deleted.
 
 
-##Disputes:
-###'/disputes/<int:disputeID>':
-####GET:
+## Disputes:
+### '/disputes/<int:disputeID>':
+#### GET:
 The GET end point will return the dispute that whose ID is included in the path parameter. The dispute will include information such as the visitors implicated, the guide, and the description of the dispute. This method will be the page where the detailed information about a particular dispute. 
 
 Possible Errors:
@@ -306,9 +306,9 @@ Possible Errors:
 
 
 
-##Disputes:
-###'/disputes/':
-#####POST:
+## Disputes:
+### '/disputes/':
+#### POST:
 This POST end point will create a dispute that will take in the visitor username and the guide username. It will also take in the description of the dispute between the two people. It will return a JSON form of the dispute that is being added to the database. This will be the main way the guide and the users file a complain about the other party. 
 Possible Errors:
 1. 400, Bad request when the required parameters is not included in the JSON parameters or when the guide or visitors with the given parameters can't be found
@@ -341,7 +341,7 @@ Output:
 }
 
 
-###DELETE:
+### DELETE:
 The delete method will allow either the user, the guide or the admin to delete the dispute. This will serve as a dispute resolution function in our website. If it is successful, the user will get a message saying that the dispute has been resolved. 
 
 Possible Errors:
@@ -350,9 +350,9 @@ Possible Errors:
 
 Dispute successfully resolveds
 
-##Visitors
-###'/visitors'
-####GET:
+## Visitors
+### '/visitors'
+#### GET:
 The GET method will return the information regarding a particular visitor. It will list the username, description, sex and finally a list of all the tours that the visitor is signed in. This will serve as the profile page for the users. 
 
 
@@ -360,7 +360,7 @@ Possible Errors:
 1). 401 - The logged in user is not a visitor and doesn't have the permission to access the profile page. 
 
 
-#####POST:
+#### POST:
 The post endpoint will take in JSON data and parse it and use it to create a new visitors. The required information are description and sex. This method will be used by the system to register a user as a visitor. It will also modify the visitors database, by adding this newly created visitors. 
 
 Possible Errors:
@@ -388,7 +388,7 @@ Output:
     "description": "sleepy af plz help"
 }
 
-####PATCH:
+#### PATCH:
 The patch endpoint will allow the existing visitor to modify their information. They can choose to modify their own description or their own sex. This will modify the visitors database. 
 
 Possible Errors:
@@ -415,7 +415,7 @@ Output:
     "createdAt": "2019-05-14T08:04:54.008Z"
 }
 
-###DELETE:
+#### DELETE:
 The delete method will allow the admin or the current user to delete the visitor object associated with the user with the given visitorID. When a particular visitor is deleted, all the tours that the visitor is in will also be deleted. This method will modify the visitors database and the tours database. 
 
 Possible Errors:
