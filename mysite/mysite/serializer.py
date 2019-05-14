@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from main.models import VisitorReview, Visitors, Cities, States, Countries, Review, Tours, Guide
+from main.models import *
 
 class touristReviewSerializer(serializers.ModelSerializer):
     class Meta:

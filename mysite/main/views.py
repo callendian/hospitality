@@ -6,7 +6,7 @@ import datetime
 from django.db import DatabaseError
 from rest_framework import status
 import json
-from main.models import Guide, Tours, Review
+from main.models import *
 
 # Create your views here.
 
