@@ -6,7 +6,7 @@ import datetime
 from django.db import DatabaseError
 from rest_framework import status
 import json
-from main.models import Guide, Tours, Review
+from main.models import Guide, Tours, Review, Visitors
 
 # Create your views here.
 
@@ -284,8 +284,16 @@ def tours(request, id):
                         except:
                                 return HttpResponse("Guide doesn't exist", 
                                         status=status.HTTP_400_BAD_REQUEST)
+                        try:
+                                print(request.user)
+                                guest = Visitors.objects.get(user=request.user)
+                                print(guest)
+                        except:
+                                return HttpResponse("Visitor doesn't exist", 
+                                        status=status.HTTP_400_BAD_REQUEST)     
                         # retrieve input from JSON request
                         data = callDataBase(request)
+                        print(data)
                         if isinstance(data, HttpResponse):
                                 return data
                         # checks to make sure each field was filled out in the JSON request
@@ -300,7 +308,7 @@ def tours(request, id):
                         else:
                                 notesToGuide = data['notesToGuide']
                         try:
-                                newTour = Tours(Guest=request.user,
+                                newTour = Tours(Guest=guest,
                                                 Guide=guide,
                                                 Start=datetime.datetime.strptime(data['Start'], 
                                                         "%Y-%m-%d %H:%M"),
@@ -314,7 +322,7 @@ def tours(request, id):
                                 return HttpResponse(DatabaseErrorMessage, 
                                         status=status.HTTP_400_BAD_REQUEST)
                         result = {
-                                'creator' : formatUser(request.user),
+                                'creator/visitor' : formatUser(request.user),
                                 'Guide' : guide.name,
                                 'Start' : newTour.Start,
                                 'End' : newTour.End,
@@ -361,3 +369,4 @@ def callDataBase(request):
         return HttpResponse(JSONDecodeFailMessage, status=status.HTTP_400_BAD_REQUEST)
     except Exception: # Any other exception
         return HttpResponse(BadRequestMessage, status=status.HTTP_400_BAD_REQUEST)
+    return data    

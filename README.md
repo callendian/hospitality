@@ -179,18 +179,18 @@ Input:
 
 Output:
 {
-    "creator": {
-        "username": "chacha",
-        "first_name": "char",
-        "last_name": "callender",
-        "email": "cha@uw.edu"
+    "notesToGuide": "I am allergic to nutts.",
+    "editedAt": "2019-05-14T14:52:09.691Z",
+    "Guide": "miranda",
+    "creator/visitor": {
+        "username": "wei",
+        "email": "wei",
+        "last_name": "wei",
+        "first_name": "wei"
     },
-    "Guide": "Mr. Callender",
-    "Start": "2011-10-01T16:26:00",
     "End": "2011-10-01T16:50:00",
-    "createdAt": "2019-05-12T09:23:46.667",
-    "editedAt": "2019-05-12T09:23:46.667",
-    "notesToGuide": "I am allergic to nutts."
+    "Start": "2011-10-01T16:26:00",
+    "createdAt": "2019-05-14T07:52:09.689"
 }
 
 #### DELETE:
@@ -348,7 +348,88 @@ Possible Errors:
 1). 400 - if the dispute with the given doesn't exist, or if it is not included in the parameters. 
 2). 401 - If the user is not the guide or the visitor implicated, or the admin. 
 
+Dispute successfully resolveds
 
+## Visitors
+### '/visitors'
+#### GET:
+The GET method will return the information regarding a particular visitor. It will list the username, description, sex and finally a list of all the tours that the visitor is signed in. This will serve as the profile page for the users. 
+
+
+Possible Errors:
+1). 401 - The logged in user is not a visitor and doesn't have the permission to access the profile page. 
+
+
+#####POST:
+The post endpoint will take in JSON data and parse it and use it to create a new visitors. The required information are description and sex. This method will be used by the system to register a user as a visitor. It will also modify the visitors database, by adding this newly created visitors. 
+
+Possible Errors:
+1. 400, when the required parameters are not included
+2. 401, When the users is not logged in.
+
+Example Interaction:
+Input:
+{
+	"description": "sleepy af plz help",
+	"sex": "M"
+}
+
+Output: 
+{
+    "user": {
+        "last_name": "wei",
+        "email": "wei",
+        "first_name": "wei",
+        "username": "wei"
+    },
+    "createdAt": "2019-05-14T08:04:54.008",
+    "sex": "M",
+    "editedAt": "2019-05-14T15:05:02.911Z",
+    "description": "sleepy af plz help"
+}
+
+####PATCH:
+The patch endpoint will allow the existing visitor to modify their information. They can choose to modify their own description or their own sex. This will modify the visitors database. 
+
+Possible Errors:
+1). 401 - when the user is not logged in or the user is not a visitor
+
+Example Interaction:
+Input:
+{
+	"description": "hEhE XD", 
+	"sex": "M"
+}
+
+Output:
+{
+    "user": {
+        "last_name": "wei",
+        "username": "wei",
+        "first_name": "wei",
+        "email": "wei"
+    },
+    "description": "hEhE XD",
+    "sex": "M",
+    "editedAt": "2019-05-14T15:18:40.072Z",
+    "createdAt": "2019-05-14T08:04:54.008Z"
+}
+
+###DELETE:
+The delete method will allow the admin or the current user to delete the visitor object associated with the user with the given visitorID. When a particular visitor is deleted, all the tours that the visitor is in will also be deleted. This method will modify the visitors database and the tours database. 
+
+Possible Errors:
+1). 400 - If the required parameters (visitorName) is not included in the input.
+2). 401 - The person doesn't have the proper priveledge to delete a user. 
+
+Example Interaction:
+Input:
+{
+	"visitorID": 3
+}
+
+Output:
+User Deleted
 
 
 
