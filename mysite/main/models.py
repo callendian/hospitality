@@ -16,9 +16,23 @@ class Guide(models.Model):
     editedAt = models.DateTimeField(auto_now=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, unique=True)
 
+class Visitors(models.Model):
+    #name = models.CharField('name', max_length=22, default="default", unique=True)
+    description = models.CharField('description', max_length=250)
+    createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
+    editedAt = models.DateTimeField(auto_now=True)
+    choices = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other')
+    )
+    sex = models.CharField(max_length=10, choices=choices)
+    #tour = models.ManyToManyField(Tours)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
 # Represents a tour appointment between 1 guide and 1 user
 class Tours(models.Model):
-    Guest = models.ForeignKey(User, on_delete=models.CASCADE)
+    Guest = models.ForeignKey(Visitors, on_delete=models.CASCADE)
     Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
     Start = models.DateTimeField('start_time')
     End = models.DateTimeField('end_time')
@@ -66,19 +80,6 @@ class Cities(models.Model):
     state_id = models.ForeignKey(States, on_delete=models.CASCADE)
     name = models.CharField(null=True, max_length=50)
     city_code = models.CharField(null=True, max_length=5)
-
-class Visitors(models.Model):
-    description = models.CharField('description', max_length=250)
-    createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
-    editedAt = models.DateTimeField(auto_now=True)
-    choices = (
-        ('M', 'Male'),
-        ('F', 'Female'),
-        ('O', 'Other')
-    )
-    sex = models.CharField(max_length=10, choices=choices)
-    tour = models.ManyToManyField(Tours)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 class VisitorReview(models.Model):
     visitor = models.ForeignKey(Visitors, on_delete=models.CASCADE, unique=True)

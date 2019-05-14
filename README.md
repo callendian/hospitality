@@ -179,18 +179,18 @@ Input:
 
 Output:
 {
-    "creator": {
-        "username": "chacha",
-        "first_name": "char",
-        "last_name": "callender",
-        "email": "cha@uw.edu"
+    "notesToGuide": "I am allergic to nutts.",
+    "editedAt": "2019-05-14T14:52:09.691Z",
+    "Guide": "miranda",
+    "creator/visitor": {
+        "username": "wei",
+        "email": "wei",
+        "last_name": "wei",
+        "first_name": "wei"
     },
-    "Guide": "Mr. Callender",
-    "Start": "2011-10-01T16:26:00",
     "End": "2011-10-01T16:50:00",
-    "createdAt": "2019-05-12T09:23:46.667",
-    "editedAt": "2019-05-12T09:23:46.667",
-    "notesToGuide": "I am allergic to nutts."
+    "Start": "2011-10-01T16:26:00",
+    "createdAt": "2019-05-14T07:52:09.689"
 }
 
 #### DELETE:
@@ -235,7 +235,19 @@ Input:
 }
 
 Output: 
-
+{
+    "title": null,
+    "createdAt": "2019-05-13T21:40:56.990",
+    "stars": "",
+    "content": "he is da best",
+    "visitor": {
+        "username": "csofian",
+        "last_name": "",
+        "email": "cns24@uw.edu",
+        "first_name": ""
+    },
+    "editedAt": "2019-05-14T04:41:08.286Z"
+}
 
 ####PATCH:
 The patch endpoint will allow the existing guide to edit the review they wrote of a particular user. It will modify the existing records for the userreview table. 
@@ -248,10 +260,24 @@ Example Interaction:
 Input:
 {
 	"visitorName": "csofian", 
-	"content": "he is not da best"
+	"content": "he is not da best",
+	"stars": "5",
+	"title": "Chris is the best"
 }
-
 Output:
+{
+    "title": "Chris is the best",
+    "createdAt": "2019-05-13T21:40:56.990Z",
+    "stars": "5",
+    "content": "he is not da best",
+    "visitor": {
+        "username": "csofian",
+        "last_name": "",
+        "email": "cns24@uw.edu",
+        "first_name": ""
+    },
+    "editedAt": "2019-05-14T04:41:43.501Z"
+}
 
 ###DELETE:
 The delete method will allow the existing guide to delete their review of a particular users. It will take in a dispute id and it will delete that particular dispute. The only person that can delete this dispute is the user that file the dispute or the guide in the dispute.
@@ -265,22 +291,27 @@ Input:
 	"visitorName": "csofian"
 }
 
+Output:
+The given reviews is deleted.
 
-## Disputes
-### '/disputes'
-#### GET:
-The GET end point will return the dispute that whose ID is included in the path parameter. The dispute will include information such as the visitors implicated, the guide, 
-The GET end point will return the review for the current user that is logged in. This review will include information such as the visitor's name, the title of the review, the description of the review and the star rating. This review would be written by the guide after the end of a tour for the visitors. This data would be returned in a JSON format.
+
+##Disputes:
+###'/disputes/<int:disputeID>':
+####GET:
+The GET end point will return the dispute that whose ID is included in the path parameter. The dispute will include information such as the visitors implicated, the guide, and the description of the dispute. This method will be the page where the detailed information about a particular dispute. 
 
 Possible Errors:
-1) 401, Unauthorized access: The user is not logged in, or if the logged in user is not a visitor. 
+1) 400, if the dispute with the given id doesn't exist
+1) 401, Unauthorized access: The user is not logged in, or if the logged in user is not the implicated visitor or guide. 
 
 
+
+##Disputes:
+###'/disputes/':
 #####POST:
-The post endpoint will take in JSON data and parse it and use it to create a new user review. The required information is visitorName and content, the optional paramenters are title and star rating. When guides write a review about the user, they will use this method. 
-
+This POST end point will create a dispute that will take in the visitor username and the guide username. It will also take in the description of the dispute between the two people. It will return a JSON form of the dispute that is being added to the database. This will be the main way the guide and the users file a complain about the other party. 
 Possible Errors:
-1. 400, Bad request when content or description is not included in the JSON parameters
+1. 400, Bad request when the required parameters is not included in the JSON parameters or when the guide or visitors with the given parameters can't be found
 2. 401, When the users is not logged in or if they are not a guide then they shouldn't be able to write a review
 
 Example Interaction:
@@ -291,31 +322,114 @@ Input:
 }
 
 Output: 
+{
+    "editedAt": "2019-05-14T05:27:20.067Z",
+    "createdAt": "2019-05-13T22:26:10.127",
+    "visitor": {
+        "last_name": "",
+        "first_name": "",
+        "email": "cns24@uw.edu",
+        "username": "csofian"
+    },
+    "guide": {
+        "last_name": "wei",
+        "first_name": "wei",
+        "email": "wei",
+        "username": "wei"
+    },
+    "description": "He is not handsome"
+}
 
 
-####PATCH:
-The patch endpoint will allow the existing guide to edit the review they wrote of a particular user. It will modify the existing records for the userreview table. 
+###DELETE:
+The delete method will allow either the user, the guide or the admin to delete the dispute. This will serve as a dispute resolution function in our website. If it is successful, the user will get a message saying that the dispute has been resolved. 
 
 Possible Errors:
-1). 401 - when the user is not logged in or the user is not a guide
-2). 400 - If required parameters (visitorName) is not included in the input.
+1). 400 - if the dispute with the given doesn't exist, or if it is not included in the parameters. 
+2). 401 - If the user is not the guide or the visitor implicated, or the admin. 
+
+Dispute successfully resolveds
+
+##Visitors
+###'/visitors'
+####GET:
+The GET method will return the information regarding a particular visitor. It will list the username, description, sex and finally a list of all the tours that the visitor is signed in. This will serve as the profile page for the users. 
+
+
+Possible Errors:
+1). 401 - The logged in user is not a visitor and doesn't have the permission to access the profile page. 
+
+
+#####POST:
+The post endpoint will take in JSON data and parse it and use it to create a new visitors. The required information are description and sex. This method will be used by the system to register a user as a visitor. It will also modify the visitors database, by adding this newly created visitors. 
+
+Possible Errors:
+1. 400, when the required parameters are not included
+2. 401, When the users is not logged in.
 
 Example Interaction:
 Input:
 {
-	"visitorName": "csofian", 
-	"content": "he is not da best"
+	"description": "sleepy af plz help",
+	"sex": "M"
+}
+
+Output: 
+{
+    "user": {
+        "last_name": "wei",
+        "email": "wei",
+        "first_name": "wei",
+        "username": "wei"
+    },
+    "createdAt": "2019-05-14T08:04:54.008",
+    "sex": "M",
+    "editedAt": "2019-05-14T15:05:02.911Z",
+    "description": "sleepy af plz help"
+}
+
+####PATCH:
+The patch endpoint will allow the existing visitor to modify their information. They can choose to modify their own description or their own sex. This will modify the visitors database. 
+
+Possible Errors:
+1). 401 - when the user is not logged in or the user is not a visitor
+
+Example Interaction:
+Input:
+{
+	"description": "hEhE XD", 
+	"sex": "M"
 }
 
 Output:
+{
+    "user": {
+        "last_name": "wei",
+        "username": "wei",
+        "first_name": "wei",
+        "email": "wei"
+    },
+    "description": "hEhE XD",
+    "sex": "M",
+    "editedAt": "2019-05-14T15:18:40.072Z",
+    "createdAt": "2019-05-14T08:04:54.008Z"
+}
 
 ###DELETE:
-The delete method will allow the existing guide to delete their review of a particular users. It will take in a dispute id and it will delete that particular dispute. The only person that can delete this dispute is the user that file the dispute or the guide in the dispute.
+The delete method will allow the admin or the current user to delete the visitor object associated with the user with the given visitorID. When a particular visitor is deleted, all the tours that the visitor is in will also be deleted. This method will modify the visitors database and the tours database. 
 
 Possible Errors:
 1). 400 - If the required parameters (visitorName) is not included in the input.
+2). 401 - The person doesn't have the proper priveledge to delete a user. 
 
+Example Interaction:
+Input:
+{
+	"visitorID": 3
+}
 
+Output:
+User Deleted
 
 
 
