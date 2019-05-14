@@ -1,6 +1,5 @@
 from django.contrib import admin
-from main.models import (Guide, Tours, Review, 
-Countries, States, Cities, Visitors, VisitorReview, Disputes)
+from main.models import *
 
 class GuideAdmin(admin.ModelAdmin):
     pass
