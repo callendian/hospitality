@@ -210,3 +210,112 @@ Input:
 output:
 "Tour Deleted"
 
+
+## UserReview
+### '/userreview'
+#### GET:
+The GET end point will return the review for the current user that is logged in. This review will include information such as the visitor's name, the title of the review, the description of the review and the star rating. This review would be written by the guide after the end of a tour for the visitors. This data would be returned in a JSON format.
+
+Possible Errors:
+1) 401, Unauthorized access: The user is not logged in, or if the logged in user is not a visitor. 
+
+
+#####POST:
+The post endpoint will take in JSON data and parse it and use it to create a new user review. The required information is visitorName and content, the optional paramenters are title and star rating. When guides write a review about the user, they will use this method. 
+
+Possible Errors:
+1. 400, Bad request when content or description is not included in the JSON parameters
+2. 401, When the users is not logged in or if they are not a guide then they shouldn't be able to write a review
+
+Example Interaction:
+Input:
+{
+	"visitorName": "csofian", 
+	"content": "he is da best"
+}
+
+Output: 
+
+
+####PATCH:
+The patch endpoint will allow the existing guide to edit the review they wrote of a particular user. It will modify the existing records for the userreview table. 
+
+Possible Errors:
+1). 401 - when the user is not logged in or the user is not a guide
+2). 400 - If required parameters (visitorName) is not included in the input.
+
+Example Interaction:
+Input:
+{
+	"visitorName": "csofian", 
+	"content": "he is not da best"
+}
+
+Output:
+
+###DELETE:
+The delete method will allow the existing guide to delete their review of a particular users. It will take in a dispute id and it will delete that particular dispute. The only person that can delete this dispute is the user that file the dispute or the guide in the dispute.
+
+Possible Errors:
+1). 400 - If the required parameters (visitorName) is not included in the input.
+
+Example Interaction:
+Input:
+{
+	"visitorName": "csofian"
+}
+
+
+## Disputes
+### '/disputes'
+#### GET:
+The GET end point will return the dispute that whose ID is included in the path parameter. The dispute will include information such as the visitors implicated, the guide, 
+The GET end point will return the review for the current user that is logged in. This review will include information such as the visitor's name, the title of the review, the description of the review and the star rating. This review would be written by the guide after the end of a tour for the visitors. This data would be returned in a JSON format.
+
+Possible Errors:
+1) 401, Unauthorized access: The user is not logged in, or if the logged in user is not a visitor. 
+
+
+#####POST:
+The post endpoint will take in JSON data and parse it and use it to create a new user review. The required information is visitorName and content, the optional paramenters are title and star rating. When guides write a review about the user, they will use this method. 
+
+Possible Errors:
+1. 400, Bad request when content or description is not included in the JSON parameters
+2. 401, When the users is not logged in or if they are not a guide then they shouldn't be able to write a review
+
+Example Interaction:
+Input:
+{
+	"visitorName": "csofian", 
+	"content": "he is da best"
+}
+
+Output: 
+
+
+####PATCH:
+The patch endpoint will allow the existing guide to edit the review they wrote of a particular user. It will modify the existing records for the userreview table. 
+
+Possible Errors:
+1). 401 - when the user is not logged in or the user is not a guide
+2). 400 - If required parameters (visitorName) is not included in the input.
+
+Example Interaction:
+Input:
+{
+	"visitorName": "csofian", 
+	"content": "he is not da best"
+}
+
+Output:
+
+###DELETE:
+The delete method will allow the existing guide to delete their review of a particular users. It will take in a dispute id and it will delete that particular dispute. The only person that can delete this dispute is the user that file the dispute or the guide in the dispute.
+
+Possible Errors:
+1). 400 - If the required parameters (visitorName) is not included in the input.
+
+
+
+
+

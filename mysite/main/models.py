@@ -25,12 +25,6 @@ class Tours(models.Model):
     createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
     editedAt = models.DateTimeField(auto_now=True)
     notesToGuide = models.CharField('description', null=True, max_length=500, unique=False)
-    def save(self, *args, **kwargs):
-        # check for time conflicts, i.e. if the guide has any other tours scheduled for that time
-        scheduled_tours = Tours.objects.filter(Guide=self.Guide, Start_date__range=(self.Start, self.End), End_date__range=(self.Start, self.End))
-        if not scheduled_tours:
-            return
-        super().save(*args, **kwargs)
     
 # Stores all the reviews of the guides
 class Review(models.Model):
