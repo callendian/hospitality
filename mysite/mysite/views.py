@@ -16,16 +16,18 @@ def userreview(request):
             currentProf = Visitors.objects.get(user=request.user)
             print(currentProf)
             if(currentProf == None):
-                return HttpResponse("You have to be a visitor to view visitor review.")
+                return HttpResponse("You have to be a visitor to view visitor review.", status=status.HTTP_401_UNAUTHORIZED)
             print("I'm out")
             curReview = VisitorReview.objects.get(visitor=currentProf)
             cur_dict = json.loads(serializers.serialize('json', [curReview, ]))[0]['fields']
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, content_type="application/json", status=status.HTTP_200_OK)
         elif(request.method == "POST"):
+            if(not request.user.is_authenticated):
+                return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
             isGuide = Guide.objects.filter(creator=request.user)
             if(len(isGuide) == 0):
-                return HttpResponse("You have to be a guide to write visitor review.")
+                return HttpResponse("You have to be a guide to write visitor review.", status=status.HTTP_401_UNAUTHORIZED)
             data = checkValidJSONInput(request)
             #if(allReviews != None):
             #    return HttpResponse("You have already written review for this visitor", content_type="plain/text", status=status.HTTP_400_BAD_REQUEST)
@@ -38,8 +40,6 @@ def userreview(request):
             newReview = VisitorReview(visitor=Visitors.objects.get(name=data["visitorName"]), content=data["content"])
             if("title" in data.keys()):
                 newReview.title = data["title"]
-            if("content" in data.keys()):
-                newReview.content = data["content"]
             if("stars" in data.keys()):
                 newReview.stars = data["stars"]
             newReview.save()
@@ -59,9 +59,11 @@ def userreview(request):
             allReviews.delete()
             return HttpResponse("All Reviews Deleted.", content_type="plain/text",status=status.HTTP_200_OK)
         elif(request.method == "PATCH"):
+            if(not request.user.is_authenticated):
+                return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
             isGuide = Guide.objects.filter(creator=request.user)
             if(len(isGuide) == 0):
-                return HttpResponse("You have to be a guide to write visitor review.")
+                return HttpResponse("You have to be a guide to write visitor review.", status=status.HTTP_401_UNAUTHORIZED)
             data = checkValidJSONInput(request)
             if(not "visitorName" in data.keys()):
                 return HttpResponse("visitorName is required", 
