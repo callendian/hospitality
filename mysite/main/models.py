@@ -50,7 +50,7 @@ class TourType(models.Model):
         ('Educational', 'Educational'),
         ('Mixed', 'Mixed')
     )
-    name = models.CharField(max_length=50, choices=choices)
+    name = models.CharField(max_length=50, choices=choices, unique=True)
     description = models.TextField(null=True, blank=True)
 
 
