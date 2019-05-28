@@ -367,15 +367,15 @@ def callDataBase(request):
 
 @csrf_exempt
 def search(request):
-   if not request.user or not request.user.is_authenticated:
-        
+    if not request.user or not request.user.is_authenticated:
+       return HttpResponse("Unauthorized.", status=401)
 
-   if request.method == "GET":
+    if request.method == "GET":
         # GET: form for searching trips
         form = TourSearchForm()
         return render(request, "main/search.html", {"form": form})
 
-   elif request.method == "POST":
+    elif request.method == "POST":
         # POST: search trips with given form data
         data = parse_qs(request.body.decode("utf-8"))
 
@@ -407,17 +407,17 @@ def search(request):
 
 @csrf_exempt
 def saved(request):
-   if not request.user or not request.user.is_authenticated:
+    if not request.user or not request.user.is_authenticated:
         return HttpResponse("Unauthorized.", status=401)
    
-   visitor = Visitor.objects.get(user=request.user)
+    visitor = Visitor.objects.get(user=request.user)
 
-   if request.method == "GET":
+    if request.method == "GET":
         # GET: form for searching trips
         saved = getSavedToursForVisitor(visitor)
         return render(request, "main/saved.html", {"saved": list(saved)})
 
-   elif request.method == "POST":
+    elif request.method == "POST":
         # POST: search trips with given form data
         data = parse_qs(request.body.decode("utf-8"))
         tour_id = int(data["tour_id"][0])
@@ -434,7 +434,7 @@ def saved(request):
         saved = getSavedToursForVisitor(visitor)
         return render(request, "main/saved.html", {"saved": list(saved)})
    
-   elif request.method == "DELETE":
+    elif request.method == "DELETE":
         # DELETE: remove from bookmarked tours
         data = json.loads(request.body.decode("utf-8"))
         savedTour_id = data["savedtour_id"]
@@ -450,7 +450,7 @@ def saved(request):
             saved = getSavedToursForVisitor(visitor)
             return render(request, "main/saved.html", {"saved": list(saved)})
 
-   else:
+    else:
         return HttpResponse("Method not allowed on this route", status=405)
 
 
