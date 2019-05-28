@@ -358,46 +358,46 @@ def formatUser(user):
 # calls Database and either returns data passed in by user or an error that occured
 def callDataBase(request):
     try: # Decode post body into JSON
-     data = json.loads(request.body.decode("utf-8"))
+        data = json.loads(request.body.decode("utf-8"))
     except json.JSONDecodeError: # If JSON failed to decode
-    return HttpResponse(JSONDecodeFailMessage, status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(JSONDecodeFailMessage, status=status.HTTP_400_BAD_REQUEST)
     except Exception: # Any other exception
-    return HttpResponse(BadRequestMessage, status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(BadRequestMessage, status=status.HTTP_400_BAD_REQUEST)
 
 
 @csrf_exempt
 def search(request):
    if not request.user or not request.user.is_authenticated:
-     return HttpResponse("Unauthorized.", status=401)
+        
 
    if request.method == "GET":
-      # GET: form for searching trips
-      form = TourSearchForm()
-      return render(request, "main/search.html", {"form": form})
+        # GET: form for searching trips
+        form = TourSearchForm()
+        return render(request, "main/search.html", {"form": form})
 
    elif request.method == "POST":
-      # POST: search trips with given form data
-      data = parse_qs(request.body.decode("utf-8"))
+        # POST: search trips with given form data
+        data = parse_qs(request.body.decode("utf-8"))
 
-      tourType = data["tourType"][0]
-      city = data["city"][0]
-      min_days = int(data["min_days"][0])
-      max_days = int(data["max_days"][0])
+        tourType = data["tourType"][0]
+        city = data["city"][0]
+        min_days = int(data["min_days"][0])
+        max_days = int(data["max_days"][0])
 
-      search_results = Tour.objects.select_related('guide')\
-     .filter(
-        tourType__name=tourType, 
-        city__name=city, 
-        days__gte=min_days, 
-        days__lte=max_days
-     ).values(
-        'id', 'description', 
-        'days', 'price', 
-        'guide__first_name', 
-        'guide__last_name', 
-        'guide__email', 
-        'guide__gender'
-     )
+        search_results = Tour.objects.select_related('guide')\
+        .filter(
+            tourType__name=tourType, 
+            city__name=city, 
+            days__gte=min_days, 
+            days__lte=max_days
+        ).values(
+            'id', 'description', 
+            'days', 'price', 
+            'guide__first_name', 
+            'guide__last_name', 
+            'guide__email', 
+            'guide__gender'
+        )
 
       return render(request, "main/search.html", {"form": TourSearchForm(), "search_results": list(search_results)})
 
@@ -408,63 +408,63 @@ def search(request):
 @csrf_exempt
 def saved(request):
    if not request.user or not request.user.is_authenticated:
-     return HttpResponse("Unauthorized.", status=401)
+        return HttpResponse("Unauthorized.", status=401)
    
    visitor = Visitor.objects.get(user=request.user)
 
    if request.method == "GET":
-      # GET: form for searching trips
-      saved = getSavedToursForVisitor(visitor)
-      return render(request, "main/saved.html", {"saved": list(saved)})
+        # GET: form for searching trips
+        saved = getSavedToursForVisitor(visitor)
+        return render(request, "main/saved.html", {"saved": list(saved)})
 
    elif request.method == "POST":
-      # POST: search trips with given form data
-      data = parse_qs(request.body.decode("utf-8"))
-      tour_id = int(data["tour_id"][0])
+        # POST: search trips with given form data
+        data = parse_qs(request.body.decode("utf-8"))
+        tour_id = int(data["tour_id"][0])
 
-      savedTour = SavedTour()
-      savedTour.tour = Tour.objects.get(pk=tour_id)
-      savedTour.visitor = visitor
+        savedTour = SavedTour()
+        savedTour.tour = Tour.objects.get(pk=tour_id)
+        savedTour.visitor = visitor
 
-      try:
-     savedTour.save()
-      except:
-     return HttpResponse("Error saving tour.", status=400)
-      
-      saved = getSavedToursForVisitor(visitor)
-      return render(request, "main/saved.html", {"saved": list(saved)})
+        try:
+        savedTour.save()
+        except:
+        return HttpResponse("Error saving tour.", status=400)
+        
+        saved = getSavedToursForVisitor(visitor)
+        return render(request, "main/saved.html", {"saved": list(saved)})
    
    elif request.method == "DELETE":
-      # DELETE: remove from bookmarked tours
-      data = json.loads(request.body.decode("utf-8"))
-      savedTour_id = data["savedtour_id"]
+        # DELETE: remove from bookmarked tours
+        data = json.loads(request.body.decode("utf-8"))
+        savedTour_id = data["savedtour_id"]
 
-      try:
-     savedTour = SavedTour.objects.select_related('visitor').get(pk=savedTour_id)
-     if savedTour.visitor != visitor:
-        return HttpResponse("Forbidden.", status=403)
-     else:
-        savedTour.delete()
+        try:
+            savedTour = SavedTour.objects.select_related('visitor').get(pk=savedTour_id)
+            if savedTour.visitor != visitor:
+            return HttpResponse("Forbidden.", status=403)
+        else:
+            savedTour.delete()
       
-      except:
-     saved = getSavedToursForVisitor(visitor)
-     return render(request, "main/saved.html", {"saved": list(saved)})
+        except:
+            saved = getSavedToursForVisitor(visitor)
+            return render(request, "main/saved.html", {"saved": list(saved)})
 
    else:
-      return HttpResponse("Method not allowed on this route", status=405)
+        return HttpResponse("Method not allowed on this route", status=405)
 
 
 def getSavedToursForVisitor(visitor):
-   saved = SavedTour.objects.select_related('tour__city').select_related('tour__guide').filter(visitor=visitor).values(
-      'id',
-      'tour_id', 
-      'tour__city__name',
-      'tour__description',
-      'tour__days',
-      'tour__price',
-      'tour__guide__first_name',
-      'tour__guide__last_name',
-      'tour__guide__email',
-      'tour__guide__gender'
-   )
-   return saved
+    saved = SavedTour.objects.select_related('tour__city').select_related('tour__guide').filter(visitor=visitor).values(
+        'id',
+        'tour_id', 
+        'tour__city__name',
+        'tour__description',
+        'tour__days',
+        'tour__price',
+        'tour__guide__first_name',
+        'tour__guide__last_name',
+        'tour__guide__email',
+        'tour__guide__gender'
+    )
+    return saved
