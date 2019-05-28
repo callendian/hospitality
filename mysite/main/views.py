@@ -385,24 +385,31 @@ def search(request):
         max_days = int(data["max_days"][0])
 
         search_results = Tour.objects.select_related('guide')\
-        .filter(
-            tourType__name=tourType, 
-            city__name=city, 
-            days__gte=min_days, 
-            days__lte=max_days
-        ).values(
-            'id', 'description', 
-            'days', 'price', 
-            'guide__first_name', 
-            'guide__last_name', 
-            'guide__email', 
-            'guide__gender'
+            .filter(
+                tourType__name=tourType, 
+                city__name=city, 
+                days__gte=min_days, 
+                days__lte=max_days
+            ).values(
+                'id', 'description', 
+                'days', 'price', 
+                'guide__first_name', 
+                'guide__last_name', 
+                'guide__email', 
+                'guide__gender'
+            )
+
+        return render(
+            request, 
+            "main/search.html", 
+            {
+                "form": TourSearchForm(), 
+                "search_results": list(search_results)
+            }
         )
 
-      return render(request, "main/search.html", {"form": TourSearchForm(), "search_results": list(search_results)})
-
-   else:
-      return HttpResponse("Method not allowed on this route", status=405)
+    else:
+        return HttpResponse("Method not allowed on this route", status=405)
 
 
 @csrf_exempt
@@ -427,9 +434,9 @@ def saved(request):
         savedTour.visitor = visitor
 
         try:
-        savedTour.save()
+            savedTour.save()
         except:
-        return HttpResponse("Error saving tour.", status=400)
+            return HttpResponse("Error saving tour.", status=400)
         
         saved = getSavedToursForVisitor(visitor)
         return render(request, "main/saved.html", {"saved": list(saved)})
@@ -442,9 +449,9 @@ def saved(request):
         try:
             savedTour = SavedTour.objects.select_related('visitor').get(pk=savedTour_id)
             if savedTour.visitor != visitor:
-            return HttpResponse("Forbidden.", status=403)
-        else:
-            savedTour.delete()
+                return HttpResponse("Forbidden.", status=403)
+            else:
+                savedTour.delete()
       
         except:
             saved = getSavedToursForVisitor(visitor)
