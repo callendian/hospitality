@@ -5,8 +5,8 @@ from . import views
 app_name = 'main'
 urlpatterns = [
     path('', views.home, name='home'),
-    path('guides', views.tourGuides, name='guides'),
-    path('reviews/<int:id>', views.reviews, name='reviews'),
+    path('guides', views.guides, name='guides'),
+    path('reviews/guide/<int:guide_id>', views.guide_reviews, name='guide_reviews'),
     path('tours/<int:id>', views.tours, name='tours'), 
     path('search/', views.search, name='search'), 
     path('saved/', views.saved, name='saved')

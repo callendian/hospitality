@@ -28,7 +28,7 @@ def home(request):
 # Responsible for creating new Tour Guides and allows them to update their profile when they want,
 # also can return a list of all guides that exist in the DB
 @csrf_exempt
-def tourGuides(request):
+def guides(request):
 
     # returns a list of all the guides and information related to them including their
     # first and last name, username, and email
@@ -39,14 +39,14 @@ def tourGuides(request):
                 return HttpResponse(DatabaseErrorMessage, 
                     status=status.HTTP_400_BAD_REQUEST)
         result = []
-        for guide in guides:
 
+        for guide in guides:
             result.append({
                 'id' : guide.id,
-                'name' : guide.name,
-                'description' : guide.description,
-                'user' : formatUser(guide.creator)
+                'user' : formatUser(guide.user), 
+                'gender': guide.gender
             })
+
         return JsonResponse(result, safe=False)
 
     # creates a new guide and adds it to the database
@@ -58,29 +58,29 @@ def tourGuides(request):
                 return data
             # makes sure name parameter was passed in
             if 'name' not in data:
-                return HttpResponse('name is a requaired field', 
+                return HttpResponse('name is a required field', 
                     status=status.HTTP_400_BAD_REQUEST)
-            if 'description' not in data:
-                description = ""
-            else :
-                description = data['description']
+            
             try:
-                newGuide = Guide(name=data['name'],
-                        description=description,
-                        createdAt=datetime.datetime.now(), 
-                        editedAt=datetime.datetime.now(),
-                        creator=request.user)
+                newGuide = Guide(
+                    user=request.user, 
+                    first_name=request.user.first_name, 
+                    last_name=request.user.last_name, 
+                    email=request.user.email, 
+                    gender=data['gender'] if 'gender' in data else 'N/A', 
+                    bio=data['bio'] if 'bio' in data else ''
+                )
                 newGuide.save()
+
             except DatabaseError: # If database throws an error
                 return HttpResponse(DatabaseErrorMessage, 
                     status=status.HTTP_400_BAD_REQUEST)
             
             result = {
-                'name' : newGuide.name, 
-                'description' : newGuide.description,
-                'createdAt' : newGuide.createdAt,
-                'editedAt' : newGuide.editedAt,
-                'creator' : formatUser(newGuide.creator)
+                'user': formatUser(guide.user),
+                'gender': guide.gender,
+                'bio': guide.bio,
+                'createdAt': guide.createdAt
             }
             return JsonResponse(result, safe=False, status=status.HTTP_201_CREATED)
         else:
@@ -89,41 +89,36 @@ def tourGuides(request):
     # allows a guide to update information about their account
     elif request.method == 'PATCH':
         if request.user.is_authenticated:
-            guide = Guide.objects.get(creator=request.user)
+            guide = Guide.objects.get(user=request.user)
+
             if not guide:
                 return HttpResponse('Can only edit your own profile', 
                     status=status.HTTP_401_UNAUTHORIZED)
+
             # retrieve input from JSON request
             data = callDataBase(request)
+
             if isinstance(data, HttpResponse):
                 return data
+
             # updates name value
-            if 'name' not in data:
-                name = guide.name
-            else:
-                name = data['name']
-            # updates description value
-            if 'description' not in data:
-                description = guide.description
-            else:
-                description = data['description']
+            guide.first_name = data['first_name'] if 'first_name' in data else guide.first_name
+            guide.last_name = data['last_name'] if 'last_name' in data else guide.last_name
+            guide.email = data['email'] if 'email' in data else guide.email
+            guide.gender = data['gender'] if 'gender' in data else guide.gender
+            guide.bio = data['bio'] if 'bio' in data else guide.bio
+
             try:
-                newGuide = Guide(id=guide.id,
-                        name=name,
-                        description=description,
-                        createdAt=guide.createdAt, 
-                        editedAt=datetime.datetime.now(),
-                        creator=request.user)
-                newGuide.save()
+                guide.save()
             except DatabaseError: # If database throws an error
                 return HttpResponse(DatabaseErrorMessage, 
                     status=status.HTTP_400_BAD_REQUEST)
+
             result = {
-                'name' : newGuide.name,
-                'description' : newGuide.description,
-                'createdAt' : newGuide.createdAt,
-                'editedAt' : newGuide.createdAt,
-                'creator' : formatUser(newGuide.creator)
+                'user': formatUser(guide.user),
+                'gender': guide.gender,
+                'bio': guide.bio, 
+                'createdAt': guide.createdAt
             }
             return JsonResponse(result, safe=False, status=status.HTTP_201_CREATED)
             
@@ -137,117 +132,119 @@ def tourGuides(request):
 # Creates a new review and allows user to update them later on if they want to change something,
 # also when given a guide, displays all reviews about them
 @csrf_exempt
-def reviews(request, id):
+def guide_reviews(request, id):
     if request.user.is_authenticated:
+        # check to make sure the specified guide exists
+        guide = Guide.objects.get(id=id)
+        if not guide:
+            return HttpResponse(
+                "Guide doesn't exist", 
+                status=status.HTTP_400_BAD_REQUESTD
+            )
+
         if request.method == 'POST':
-            # check to make sure the specified guide exists
-            guide = Guide.objects.get(id=id)
-            if not guide:
-                return HttpResponse("Guide doesn't exist", 
-                    status=status.HTTP_400_BAD_REQUESTD)
             # retrieve input from JSON request
             data = callDataBase(request)
             if isinstance(data, HttpResponse):
                 return data
             # checks to make sure each field was filled out in the JSON request
-            if 'title' not in data:
-                return HttpResponse('title is a requaired field', 
-                    status=status.HTTP_400_BAD_REQUEST)
             if 'content' not in data:
                 return HttpResponse('content is a requaired field', 
                     status=status.HTTP_400_BAD_REQUEST)
             if 'stars' not in data:
                 return HttpResponse('stars is a requaired field', 
                     status=status.HTTP_400_BAD_REQUEST)
+            if 'booking' not in data:
+                return HttpResponse('booking is a requaired field',
+                    status=status.HTTP_400_BAD_REQUEST)
             try:
-                newReview = Review(creator=request.user,
-                        Guide=guide,
-                        title=data['title'],
-                        content=data['content'],
-                        stars=data['stars'],
-                        createdAt=datetime.datetime.now(),
-                        editedAt=datetime.datetime.now())
-                newReview.save()
+                review = Review(
+                    reviewer=Visitor.objects.get(user=request.user),
+                    guide=guide,
+                    booking=data['booking'],
+                    content=data['content'],
+                    stars=data['stars']
+                )
+                review.save()
             except DatabaseError: # If database throws an error
                 return HttpResponse(DatabaseErrorMessage, 
                     status=status.HTTP_400_BAD_REQUEST)
+
             # format and return response
             result = {
-                'creator' : formatUser(newReview.creator),
-                'Guide' : formatUser(guide.creator),
-                'title' : newReview.title,
-                'content' : newReview.content,
-                'stars' : newReview.stars,
-                'createdAt' : newReview.createdAt,
-                'editedAt' : newReview.editedAt
+                'id' : review.id, 
+                'reviewer' : formatRole(request.reviewer), 
+                'guide' : formatRole(review.guide), 
+                'booking_id' : review.booking.id, 
+                'content' : review.content,
+                'rating' : review.stars,
+                'createdAt' : review.createdAt,
+                'editedAt' : review.createdAt,
             }
             return JsonResponse(result, safe=False, status=status.HTTP_201_CREATED)
+        
         elif request.method =='PATCH':
-            guide = Guide.objects.get(id=id)
-            oldReview = Review.objects.get(Guide = guide, creator=request.user)
-            if not oldReview:
+            review = TourReview.objects.select_related('reviewer__user').get(
+                guide=guide, 
+                reviewer__user=request.user
+            )
+
+            if not review:
                 return HttpResponse("Specified Review doesn't exist", 
                     status=status.HTTP_400_BAD_REQUEST)
+
             # retrieve input from JSON request
             data = callDataBase(request)
             if isinstance(data, HttpResponse):
                 return data
-            if 'title' not in data:
-                title = oldReview.title
-            else:
-                title = data['title']
-            if 'content' not in data:
-                content = oldReview.content
-            else:
-                content = data['content']
-            if 'stars' not in data:
-                stars = oldReview.stars
-            else:
-                stars = data['stars']
+
+            review.content = data['content'] if 'content' in data else review.content
+            review.stars = data['stars'] if 'stars' in data else review.stars
+
             try:
-                newReview = Review(id=oldReview.id,
-                        creator=oldReview.creator,
-                        Guide=oldReview.Guide,
-                        title=title,
-                        content=content,
-                        stars=stars,
-                        createdAt=oldReview.createdAt, 
-                        editedAt=datetime.datetime.now())
-                newReview.save()
+                review.save()
             except DatabaseError: # If database throws an error
                 return HttpResponse(DatabaseErrorMessage, 
                     status=status.HTTP_400_BAD_REQUEST)
+
             result = {
-                'creator' : formatUser(request.user),
-                'Guide' : formatUser(guide.creator),
-                'title' : newReview.title,
-                'content' : newReview.content,
-                'stars' : newReview.stars,
-                'createdAt' : newReview.createdAt,
-                'editedAt' : newReview.createdAt,
+                'id' : review.id, 
+                'guide' : formatRole(review.guide), 
+                'booking_id' : review.booking.id, 
+                'content' : review.content,
+                'rating' : review.stars,
+                'createdAt' : review.createdAt,
+                'editedAt' : review.createdAt,
             }
             return JsonResponse(result, safe=False, status=status.HTTP_201_CREATED)
 
-        
         elif request.method == 'GET':
             try:
-                reviews = Review.objects.filter(id=id)
-                guide = Guide.objects.get(id=id)
+                reviews = TourReview.object\
+                    .select_related('reviewer')\
+                    .select_related('guide')\
+                    .select_related('booking__tour')\
+                    .filter(guide__id=id)
             except DatabaseError: # If database throws an error
                 return HttpResponse(DatabaseErrorMessage, 
                     status=status.HTTP_400_BAD_REQUEST)
+
             result = []
+
             for review in reviews:
                 result.append({
-                    'title' : review.title,
-                    'content' : review.content,
-                    'stars' : range(int(review.stars)),
-                    'user' : formatUser(review.creator),
-                    'Guide' : guide.name,
-                    'createdAt' : review.createdAt,
-                    'editedAt' : review.editedAt
+                    'reviewer': formatRole(review.reviewer),
+                    'tour': {
+                        'id': review.booking.tour.id, 
+                        'desc': review.booking.tour.description
+                    }, 
+                    'content': review.content, 
+                    'rating': int(review.rating), 
+                    'createdAt': review.createdAt, 
+                    'editedAt': review.editedAt 
                 })
-            return render(request, 'main/reviews.html', {'subject' : guide.name, 
+
+            return render(request, 'main/reviews.html', {'subject' : guide, 
                 'reviews': result})
 
         else:
@@ -355,10 +352,19 @@ def formatUser(user):
         'last_name' : user.last_name, 
         'email' : user.email})
 
+def formatRole(user):
+    return ({
+        'first_name': user.first_name, 
+        'last_name': user.last_name, 
+        'email': user.email, 
+        'gender': user.gender
+    })
+
 # calls Database and either returns data passed in by user or an error that occured
 def callDataBase(request):
     try: # Decode post body into JSON
         data = json.loads(request.body.decode("utf-8"))
+        return data
     except json.JSONDecodeError: # If JSON failed to decode
         return HttpResponse(JSONDecodeFailMessage, status=status.HTTP_400_BAD_REQUEST)
     except Exception: # Any other exception

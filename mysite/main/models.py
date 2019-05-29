@@ -19,14 +19,13 @@ GENDER = (
 )
 
 # Represents a Guide's profile
-
-
 class Guide(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, default=0)
     first_name = models.CharField(max_length=30, default="")
     last_name = models.CharField(max_length=510, default="")
     email = models.CharField(max_length=254, default="")
     gender = models.CharField(max_length=10, choices=GENDER, default="N/A")
+    bio = models.TextField(null=True, blank=True)
     createdAt = models.DateTimeField('date created', auto_now_add=True)
 
 
@@ -93,13 +92,12 @@ class Booking(models.Model):
             raise ValidationError('Schedule Conflict')
         super().save(*args, **kwargs)
 
-
-# Reviews of tour guides towards their customers (visitors)
+# Reviews of visitors towards tours/guides
 class TourReview(models.Model):
     # only one review per visitor booking allowed
     reviewer = models.ForeignKey('Visitor', on_delete=models.CASCADE, default=None)
     guide = models.ForeignKey('Guide', on_delete=models.CASCADE, default=None)
-    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, default=None)
+    booking = models.OneToOneField('Booking', on_delete=models.CASCADE)
     content = models.TextField()
     rating = models.CharField(max_length=2, choices=STAR_RATING)
     createdAt = models.DateTimeField('date created', auto_now_add=True)
