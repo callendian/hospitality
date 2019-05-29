@@ -56,6 +56,7 @@ class TourType(models.Model):
 # Represents a tour appointment between 1 guide and 1 user
 class Tour(models.Model):
     guide = models.ForeignKey('Guide', on_delete=models.CASCADE)
+    title = models.CharField(max_length=50, default="Tour")
     tourType = models.ForeignKey('TourType', on_delete=models.CASCADE)
     city = models.ManyToManyField('City')
     description = models.TextField(null=True, blank=True)
@@ -68,6 +69,29 @@ class SavedTour(models.Model):
     visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE)
     tour = models.ForeignKey(Tour, on_delete=models.CASCADE)
     createdAt = models.DateTimeField(auto_now_add=True)
+
+
+# Request to book
+class Request(models.Model):
+    tour = models.ForeignKey('Tour', on_delete=models.CASCADE)
+    visitor = models.ForeignKey(User, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    last_modified = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if end < start:
+            return 'End date cannot be before start date'
+
+        # check for time conflicts, i.e. if the guide has any other tours scheduled for that time
+        scheduled_tours = Booking.objects.filter(
+            tour=self.tour,
+            start_date__range=(self.start_date, self.end_date),
+            end_date__range=(self.start_date, self.end_date)
+        )
+        if reviews.exists():
+            raise ValidationError('Schedule Conflict')
+        super().save(*args, **kwargs)
 
 
 # Individual appointments of tour guides and visitors
@@ -150,12 +174,12 @@ class Dispute(models.Model):
 
 
 # Payment record for bookings
-class Transaction(models.Model):
-    visitor = models.OneToOneField('Visitor', on_delete=models.CASCADE)
-    guide = models.OneToOneField('Guide', on_delete=models.CASCADE)
-    booking = models.OneToOneField('Booking', on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=8, decimal_places=2)
-    paidAt = models.DateTimeField(auto_now_add=True)
+# class Transaction(models.Model):
+#     visitor = models.OneToOneField('Visitor', on_delete=models.CASCADE)
+#     guide = models.OneToOneField('Guide', on_delete=models.CASCADE)
+#     booking = models.OneToOneField('Booking', on_delete=models.CASCADE)
+#     amount = models.DecimalField(max_digits=8, decimal_places=2)
+#     paidAt = models.DateTimeField(auto_now_add=True)
 
 
 # Reference table for countries
