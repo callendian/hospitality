@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %} Home Page {% endblock %}
+
+{% block content %}
+<h1>Search Page</h1>
+<form action="/search/" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit">
+</form>
+{% if search_results|length %}
+<br>
+<h2>Results</h2>
+<ul>
+    {% for t in search_results %}
+    <li style="background-color:lightblue">
+        <p>
+            <strong>Guide</strong>: {{ t.guide__first_name }} {{ t.guide__last_name }}, {{ t.guide__gender }},
+            {{ t.guide__email }}
+            <br><strong>Description</strong>: {{ t.description }}
+            <br><strong>Duration</strong>: {{ t.days }} days
+            <br><strong>Price</strong>: ${{ t.price }}
+        </p>
+        <form action="/saved/" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="tour_id" value="{{ t.id }}">
+            <input type="submit" value="Save">
+        </form>
+        <br>
+        <form action="/tour/{{ t.id }}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="Book This Guide">
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% elif search_results is not None %}
+<p>No results found.</p>
+{% endif %}
+
+{% endblock %}

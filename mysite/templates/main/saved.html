@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %} Home Page {% endblock %}
+
+{% block content %}
+<h1>Saved</h1>
+{% if saved|length %}
+<ul>
+    {% for st in saved %}
+    <li style="background-color:lightblue">
+        <p>
+            <strong>Guide</strong>: {{ st.tour__guide__first_name }} {{ st.tour__guide__last_name }}, 
+            {{ st.tour__guide__gender }}, {{ st.tour__guide__email }}
+            <br><strong>City</strong>: {{ st.tour__city__name }}
+            <br><strong>Description</strong>: {{ st.tour__description }}
+            <br><strong>Duration</strong>: {{ st.tour__days }} days
+            <br><strong>Price</strong>: ${{ st.tour__price }}
+        </p>
+        <form action="/saved/" method="get">
+            <!-- supposed to be delete but tbd in future, instead delete through api endpoint -->
+            <input type="hidden" name="savedtour_id" value="{{ st.id }}">
+            <input type="submit" value="Unsave">
+        </form>
+        <br>
+        <form action="/tour/{{ st.tour_id }}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="Book This Tour">
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Nothing saved.</p>
+{% endif %}
+
+{% endblock %}

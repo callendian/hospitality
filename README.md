@@ -8,7 +8,7 @@ The GET endpoint will return a list of all guides in the app along with the info
 Possible Errors:
 1) 404, problems interacting with the database when querying it.
 
-#####POST:
+#### POST:
 The Post endpoint will take in JSON data and use it to create a new Guide in the Guide table. It takes two parameters name (required) and description (optional). People who want to become guides will use this endpoint to add themselves to the guide DB.
 
 Possible Errors:
@@ -38,7 +38,7 @@ Output:
     }
 }
 
-####PATCH:
+#### PATCH:
 The Patch endpoint will allow existing guides to edit the name they go by or the description of themselves. So it will modify existing records in the Guide Table.
 
 Possible Errors:
@@ -76,7 +76,7 @@ When given a specific Guide through an int parameter in the URL, this will pull 
 Possible Errors:
 1) 404, problems interacting with the database when querying it.
 
-#####POST:
+#### POST:
 When given JSON data, this endpoint will post new reviews about the specified guide. This is for users who want to write reviews about guides. One restriction is that a user is only allowed to write a review once for an individual guide. The user must enter a title, text content, and a star rating for this endpoint to work. The only change to the Datebase that will occur is that new records to the Reviews table will be added.
 
 Possible Errors:
@@ -115,7 +115,7 @@ Output:
 }
 
 
-####PATCH
+#### PATCH
 This endpoint is in charge of editing existing reviews. It is intended for users to be able to change their old reviews if they have a change of heart or different experience. The effect that it will have on the database is that it can edit existing reviews.
 
 Possible Errors:
@@ -422,9 +422,119 @@ Possible Errors:
 1). 400 - If the required parameters (visitorName) is not included in the input.
 2). 401 - The person doesn't have the proper priveledge to delete a user. 
 
+## Search
+### '/search/'
+#### GET:
+This endpoint will display a form through which visitors can look for tours/guides.
+
+Possible Errors:
+1) 401, Unauthorized, i.e. you must be a user who is signed in in order to look for tours
+
+#### Post:
+This endpoint will process the search form filled in by the users and return in HTML the 
+formatted search results.
+
+Possible Errors:
+1) 401, Unauthorized, i.e. you must be a user who is signed in in order to look for tours
+
+Example Interaction: 
+Input:
+{
+    "tourType": "General",
+    "city": "Seattle",
+    "min_days": "2",
+    "max_days": "4",
+}
+
+Output: HTML, only results section shown for example
+
+<h2>Results</h2>
+<ul>
+    <li style="background-color:lightblue">
+        <p>
+            <strong>Guide</strong>: Vincent Widjaya, M,
+            vwidjaya@uw.edu
+            <br><strong>Description</strong>: Testing
+            <br><strong>Duration</strong>: 3 days
+            <br><strong>Price</strong>: $100.00
+        </p>
+        <form action="/saved/" method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="xZ68yfcSxFiLlnSB9Atoc5YI5ttemWpKS6hF86W3GXLPCZkLrz3iHj2fOCaZstv5">
+            <input type="hidden" name="tour_id" value="1">
+            <input type="submit" value="Save">
+        </form>
+        <br>
+        <form action="/tour/1" method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="xZ68yfcSxFiLlnSB9Atoc5YI5ttemWpKS6hF86W3GXLPCZkLrz3iHj2fOCaZstv5">
+            <input type="submit" value="Book This Guide">
+        </form>
+    </li>
+    
+</ul>
+
+
+
+
+## Saved
+### '/saved/'
+#### GET:
+This endpoint will display the list of the user's saved tours.
+
+Possible Errors:
+1) 401, Unauthorized, i.e. you must be a user who is signed in in order to have saved tours
+
+#### Post:
+This endpoint will save a tour and refresh the list of saved tours through an HTML response.
+This is normally accessed through a Saved button from something like the search page.
+
+Possible Errors:
+1) 401, Unauthorized, i.e. you must be a user who is signed in in order to have saved tours
+2) 400, Bad Request, error saving database for some reason (invalid params)
+
+Example Interaction: 
+Input:
+{
+    "tour_id_": 1
+}
+
+Output: HTML, only saved section shown for example
+
+<h1>Saved</h1>
+<ul>
+    <li style="background-color:lightblue">
+        <p>
+            <strong>Guide</strong>: Vincent Widjaya, 
+            M, vwidjaya@uw.edu
+            <br><strong>City</strong>: Seattle
+            <br><strong>Description</strong>: Testing
+            <br><strong>Duration</strong>: 3 days
+            <br><strong>Price</strong>: $100.00
+        </p>
+        <form action="/saved/" method="get">
+            <!-- supposed to be delete but tbd in future, instead delete through api endpoint -->
+            <input type="hidden" name="savedtour_id" value="6">
+            <input type="submit" value="Unsave">
+        </form>
+        <br>
+        <form action="/tour/1" method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="Z4mHxzGCZ2khTbugoAH17WJHLUhUG0sMkbxe7qqN8kNlaNWqGzhVCaNeu3YFMxy7">
+            <input type="submit" value="Book This Tour">
+        </form>
+    </li>
+</ul>
+
+
+#### DELETE:
+The last endpoint removes a tour from the list of saved ones. 
+
+Possible Errors:
+1) 401, Unauthorized, i.e. you must be a user who is signed in in order to have saved tours
+2) 403, Forbidden, user is not the visitor that saved the specified tour
+
 Example Interaction:
 Input:
 {
+<<<<<<< HEAD
 	"visitorID": 3
 }
 
@@ -433,3 +543,11 @@ User Deleted
 
 
 
+=======
+    "savedtour_id" : "1"
+}
+
+output: HTML, only saved section shown for example
+<h1>Saved</h1>
+<p>Nothing saved.</p>
+>>>>>>> vincent-2

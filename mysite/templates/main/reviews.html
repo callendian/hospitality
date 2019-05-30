@@ -4,17 +4,19 @@
 
 {% block content %}
 
-<h1>Reviews for {{ subject }} </h1>
+<h1>Reviews for {{ subject.first_name + ' ' + subject.last_name }} </h1>
 <div class="card-deck">
     {% for review in reviews %}
     <div class="card" style="width: 18rem;">
         <div class="card-header">
-            <h5 class="card-title">{{review.title}}</h5>
+            <h5 class="card-title">{{ review.tour.desc }}</h5>
         </div>
         <div class="card-body">
-            <h6 class="card-subtitle mb-2 text-muted">Written by {{review.user.username}}</h6>
+            <h6 class="card-subtitle mb-2 text-muted">
+                Written by {{ review.reviewer.first_name + ' ' + review.reviewer.last_name }}
+            </h6>
             <p class="card-text">{{review.content}}</p>
-            {% for i in review.stars %}
+            {% for i in review.rating %}
                 <i class="fa fa-star" aria-hidden="true"></i>
             {% endfor %}
         </div>

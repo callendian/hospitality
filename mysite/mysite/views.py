@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseRedirect
-from main.models import Guide, Tours, Review, Countries, States, Cities, Visitors, VisitorReview, Disputes
+from main.models import *
 from rest_framework import status
 from mysite.serializer import VisitorReview
 import json
