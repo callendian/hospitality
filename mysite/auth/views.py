@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login, logout
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.csrf import csrf_exempt
+from main.models import *
 
 @csrf_exempt
 def register(request):
@@ -19,12 +20,28 @@ def register(request):
         print(form.cleaned_data)
         if(form.cleaned_data['password'] != form.cleaned_data['passwordconf']):
             return HttpResponse("Password did not match.", status=400)
-        User.objects.create_user(
+        newUser = User.objects.create_user(
             username=form.cleaned_data['username'], 
             email=form.cleaned_data['email'], 
             password=form.cleaned_data['passwordconf'], 
             first_name=form.cleaned_data['first_name'], 
             last_name=form.cleaned_data['last_name'])
+        newGuide = Guide(
+            user = newUser, 
+            first_name = form.cleaned_data['first_name'],
+            last_name=form.cleaned_data['last_name'],
+            email=form.cleaned_data['email'])
+        newVisitor = Visitor(
+            user = newUser, 
+            first_name = form.cleaned_data['first_name'],
+            last_name=form.cleaned_data['last_name'],
+            email=form.cleaned_data['email']
+            )
+        try:
+            newGuide.save()
+            newVisitor.save()
+        except:
+            return HttpResponse("Error in creating new user and guide")            
         return HttpResponseRedirect("/auth/signin")
     return HttpResponse("Method not allowed on /auth/register", status=405)
 

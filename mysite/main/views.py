@@ -304,7 +304,7 @@ def tours(request, id):
                         else:
                                 notesToGuide = data['notesToGuide']
                         try:
-                                newTour = Tours(Guest=guest,
+                                newTour = Tour(Guest=guest,
                                                 Guide=guide,
                                                 Start=datetime.datetime.strptime(data['Start'], 
                                                         "%Y-%m-%d %H:%M"),
@@ -340,7 +340,7 @@ def tours(request, id):
                         if 'id' not in data:
                                 return HttpResponse('id is a requaired field', 
                                         status=status.HTTP_400_BAD_REQUEST)
-                        tour = Tours.objects.get(id=data['id'])
+                        tour = Tour.objects.get(id=data['id'])
                         tour.delete()
                         return HttpResponse("Tour Deleted", content_type="plain/text", 
                                 status=status.HTTP_200_OK)
@@ -348,10 +348,7 @@ def tours(request, id):
                         return HttpResponse('Method not allowed', 
                                 status=status.HTTP_405_METHOD_NOT_ALLOWED)
         else:
-            return HttpResponse('Method not allowed', 
-                status=status.HTTP_405_METHOD_NOT_ALLOWED)
-    else:
-        return HttpResponse('Must be logged in', status=status.HTTP_401_UNAUTHORIZED)
+            return HttpResponse('Must be logged in', status=status.HTTP_401_UNAUTHORIZED)
 
 # helper function that formats user data into a dictionary
 def formatUser(user):
