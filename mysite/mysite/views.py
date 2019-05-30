@@ -44,8 +44,11 @@ def userreview(request):
                 status=status.HTTP_400_BAD_REQUEST)
             curGuide = Guide.objects.get(user=request.user)
             curBooking = Booking.objects.get(id=data["bookingID"])
+            print(curGuide)
+            print(User.objects.get(username=data["visitorName"]))
+            print(Visitor.objects.get(user=User.objects.get(username=data["visitorName"])))
             try:
-                newReview = VisitorReview(visitor=Visitors.objects.get(
+                newReview = VisitorReview(visitor=Visitor.objects.get(
                                             user=User.objects.get(username=data["visitorName"])),
                                                                   content=data["content"],
                                                                   reviewer=curGuide,
@@ -60,8 +63,10 @@ def userreview(request):
                                     status=status.HTTP_400_BAD_REQUEST)
             cur_dict = json.loads(serializers.serialize('json', [newReview, ]))[0]['fields']
             cur_dict["visitor"] = formatUser(User.objects.get(id=cur_dict["visitor"]))
-            cur_dict["reviewer"] = formatUser(curGuide.reviewer)
+            cur_dict["reviewer"] = formatUser(curGuide.user)
             cur_dict["booking"] = formatBooking(curBooking)
+            cur_dict["createdAt"] = cur_dict["createdAt"].strftime('%Y-%m-%d')
+            cur_dict["editedAt"] = cur_dict["editedAt"].strftime('%Y-%m-%d')
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
         #Delete a previously written review
@@ -276,6 +281,12 @@ def formatUser(user):
             'first_name' : user.first_name,  
             'last_name' : user.last_name, 
             'email' : user.email})
+
+def formatBooking(booking):
+    return ({'tour' : booking.tour.title, 
+        'visitor' : formatUser(booking.visitor),  
+        'start_date' : booking.start_date, 
+        'end_date' : booking.end_date})
 
 
 
