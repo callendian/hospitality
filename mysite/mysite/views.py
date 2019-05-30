@@ -17,7 +17,7 @@ def userreview(request):
                                     status=status.HTTP_401_UNAUTHORIZED)
         #Returns the review of the logged in user. 
         if(request.method == "GET"):
-            currentProf = Visitors.objects.get(user=request.user)
+            currentProf = Visitor.objects.get(user=request.user)
             if(currentProf == None):
                 return HttpResponse("You have to be a visitor to view visitor review.", 
                                     status=status.HTTP_401_UNAUTHORIZED)
@@ -65,20 +65,22 @@ def userreview(request):
             cur_dict["visitor"] = formatUser(User.objects.get(id=cur_dict["visitor"]))
             cur_dict["reviewer"] = formatUser(curGuide.user)
             cur_dict["booking"] = formatBooking(curBooking)
-            cur_dict["createdAt"] = cur_dict["createdAt"].strftime('%Y-%m-%d')
-            cur_dict["editedAt"] = cur_dict["editedAt"].strftime('%Y-%m-%d')
+            cur_dict["createdAt"] = str(cur_dict["createdAt"])
+            cur_dict["editedAt"] = str(cur_dict["editedAt"])
+            print(cur_dict)
+            print(str(cur_dict["editedAt"]))
             serializedObj = json.dumps(cur_dict)
             return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
         #Delete a previously written review
         elif(request.method == "DELETE"):
-            isGuide = Guide.objects.filter(creator=request.user)
+            isGuide = Guide.objects.filter(user=request.user)
             if(len(isGuide) == 0):
                 return HttpResponse("You have to be a guide to write visitor review.")
             data = checkValidJSONInput(request)
             if(not "visitorName" in data.keys()):
                 return HttpResponse("visitorName is required", 
                     content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
-            allReviews = VisitorReview.objects.filter(visitor=Visitors.objects.get(
+            allReviews = VisitorReview.objects.filter(visitor=Visitor.objects.get(
                                                       user=User.objects.get(
                                                                 username=data["visitorName"])))
             allReviews.delete()
@@ -90,7 +92,7 @@ def userreview(request):
             if(not request.user.is_authenticated):
                 return HttpResponse("Unauthorized. Please Sign in", 
                                     status=status.HTTP_401_UNAUTHORIZED)
-            isGuide = Guide.objects.filter(creator=request.user)
+            isGuide = Guide.objects.filter(user=request.user)
             if(len(isGuide) == 0):
                 return HttpResponse("You have to be a guide to write visitor review.", 
                                     status=status.HTTP_401_UNAUTHORIZED)
@@ -98,16 +100,14 @@ def userreview(request):
             if(not "visitorName" in data.keys()):
                 return HttpResponse("visitorName is required", 
                     content_type="text/plain", status=status.HTTP_400_BAD_REQUEST)
-            allReviews = VisitorReview.objects.get(visitor=Visitors.objects.get(
+            allReviews = VisitorReview.objects.get(visitor=Visitor.objects.get(
                                                             user=User.objects.get(
                                                                 username=data["visitorName"])))
             #Handle the optional parameters
             if("content" in data.keys()):
                 allReviews.content = data["content"]
-            if("title" in data.keys()):
-                allReviews.title = data["title"]
-            if("stars" in data.keys()):
-                allReviews.stars = data["stars"]
+            if("rating" in data.keys()):
+                allReviews.rating = data["rating"]
             allReviews.save()
             cur_dict = json.loads(serializers.serialize('json', [allReviews, ]))[0]['fields']
             cur_dict["visitor"] = formatUser(User.objects.get(id=cur_dict["visitor"]))
@@ -285,9 +285,19 @@ def formatUser(user):
 def formatBooking(booking):
     return ({'tour' : booking.tour.title, 
         'visitor' : formatUser(booking.visitor),  
-        'start_date' : booking.start_date, 
-        'end_date' : booking.end_date})
+        'start_date' : str(booking.start_date), 
+        'end_date' : str(booking.end_date)})
 
+def convertDatetimeToString(o):
+	DATE_FORMAT = "%Y-%m-%d" 
+	TIME_FORMAT = "%H:%M:%S"
+
+	if isinstance(o, datetime.date):
+	    return o.strftime(DATE_FORMAT)
+	elif isinstance(o, datetime.time):
+	    return o.strftime(TIME_FORMAT)
+	elif isinstance(o, datetime.datetime):
+	    return o.strftime("%s %s" % (DATE_FORMAT, TIME_FORMAT))
 
 
 
