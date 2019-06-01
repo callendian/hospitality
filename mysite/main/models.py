@@ -54,20 +54,6 @@ class TourType(models.Model):
     description = models.TextField(null=True, blank=True)
 
 
-class Visitors(models.Model):
-    #name = models.CharField('name', max_length=22, default="default", unique=True)
-    description = models.CharField('description', max_length=250)
-    createdAt = models.DateTimeField('date created', default=datetime.datetime.now())
-    editedAt = models.DateTimeField(auto_now=True)
-    choices = (
-        ('M', 'Male'),
-        ('F', 'Female'),
-        ('O', 'Other')
-    )
-    sex = models.CharField(max_length=10, choices=choices)
-    #tour = models.ManyToManyField(Tours)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-
 # Represents a tour appointment between 1 guide and 1 user
 class Tour(models.Model):
     guide = models.ForeignKey('Guide', on_delete=models.CASCADE)

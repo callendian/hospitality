@@ -16,16 +16,18 @@
     {% if visitor.sex == 'O' %}
         Other
     {% endif %}</h4>
-{% for tour in tourArr %}
-<h4>Tour</h4>
-<ul> 
-    <li>Guest: {{visitor.user}}</li>
-    <li>Guide: {{tour.Guide}}</li>
-    <li>Start: {{tour.Start}}</li>
-    <li>End: {{tour.End}}</li>
-    <li>Notes To Guide: {{tour.notesToGuide}}</li>
-</ul>
+    {% for booking in bookingObj %}
+    <h4>Bookings</h4>
+    <ul> 
+        <li>Guest: {{visitor.user}}</li>
+        <li>Tour: {{booking.tour}}</li>
+        <li>Tour Type: {{booking.tourType.name}}</li>
+        <li>City: {{booking.city}}</li>
+        <li>Description: {{booking.description}}</li>
+        <li>Days: {{booking.days}}</li>
+        <li>Price: {{booking.price}}</li>
+    </ul>
 
-{% endfor %}
+    {% endfor %}
 {% endblock %}
 
