@@ -53,7 +53,6 @@ class TourType(models.Model):
     name = models.CharField(max_length=50, choices=choices, unique=True)
     description = models.TextField(null=True, blank=True)
 
-
 # Represents a tour appointment between 1 guide and 1 user
 class Tour(models.Model):
     guide = models.ForeignKey('Guide', on_delete=models.CASCADE)

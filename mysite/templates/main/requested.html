@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %} Requested {% endblock %}
+
+{% block content %}
+<h1>Requests from Visitors</h1>
+{% if reqs|length %}
+<ul>
+    {% for r in reqs %}
+    <li style="background-color:lightblue">
+        <p>
+            <strong>Visitor</strong>: 
+            <a href="/reviews/visitor/{{ r.visitor_id }}">{{ r.visitor__first_name }} {{ r.visitor__last_name }}</a>
+            <br><strong>Requested from</strong>: {{ r.last_modified }}
+        </p>
+        <p>
+            <strong>Tour</strong>: <a href="/tour/{{ r.tour_id }}">{{ r.tour__title }}</a>
+            <br><strong>City</strong>: {{ r.tour__city__name }}
+            <br><strong>Dates</strong>: {{ r.start_date }} - {{ r.end_date }}
+            <br><strong>Price</strong>: ${{ r.tour__price }}
+        </p>
+        <br>
+        <form action="/requested/" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="request_id" value="{{ r.id }}">
+            <input type="hidden" name="decision" value="1">
+            <input type="submit" value="Accept">
+        </form>
+        <form action="/requested/" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="request_id" value="{{ r.id }}">
+            <input type="hidden" name="decision" value="0">
+            <input type="submit" value="Decline">
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No requests.</p>
+{% endif %}
+
+{% endblock %}
+
+'visitor_id', 
+'visitor__first_name', 
+'visitor__last_name', 
