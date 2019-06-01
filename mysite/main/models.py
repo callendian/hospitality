@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+import datetime
 
 STAR_RATING = (
     ('1', '1'),
@@ -51,7 +52,6 @@ class TourType(models.Model):
     )
     name = models.CharField(max_length=50, choices=choices, unique=True)
     description = models.TextField(null=True, blank=True)
-    
 
 # Represents a tour appointment between 1 guide and 1 user
 class Tour(models.Model):
@@ -80,7 +80,7 @@ class Request(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        if end < start:
+        if self.end_date < self.start_date:
             return 'End date cannot be before start date'
 
         # check for time conflicts, i.e. if the guide has any other tours scheduled for that time
@@ -89,7 +89,7 @@ class Request(models.Model):
             start_date__range=(self.start_date, self.end_date),
             end_date__range=(self.start_date, self.end_date)
         )
-        if reviews.exists():
+        if scheduled_tours.exists():
             raise ValidationError('Schedule Conflict')
         super().save(*args, **kwargs)
 
@@ -101,9 +101,9 @@ class Booking(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     createdAt = models.DateTimeField(auto_now_add=True)
-
+    '''
     def save(self, *args, **kwargs):
-        if end < start:
+        if self.start_date < self.end_date:
             return 'End date cannot be before start date'
 
         # check for time conflicts, i.e. if the guide has any other tours scheduled for that time
@@ -112,9 +112,10 @@ class Booking(models.Model):
             start_date__range=(self.start_date, self.end_date),
             end_date__range=(self.start_date, self.end_date)
         )
-        if reviews.exists():
+        if scheduled_tours.exists():
             raise ValidationError('Schedule Conflict')
         super().save(*args, **kwargs)
+    '''
 
 # Reviews of visitors towards tours/guides
 class TourReview(models.Model):
@@ -129,7 +130,7 @@ class TourReview(models.Model):
 
     def save(self, *args, **kwargs):
         # Checks to make sure that only a visitor can only review a booking once
-        reviews = Review.objects.filter(
+        reviews = TourReview.objects.filter(
             reviewer=self.reviewer, booking=self.booking)
         if reviews.exists():
             if reviews[0].id != self.pk:
@@ -150,7 +151,7 @@ class VisitorReview(models.Model):
 
     def save(self, *args, **kwargs):
         # Checks to make sure that only a visitor can only review a booking once
-        reviews = Review.objects.filter(
+        reviews = VisitorReview.objects.filter(
             reviewer=self.reviewer, booking=self.booking)
         if reviews.exists():
             if reviews[0].id != self.pk:
