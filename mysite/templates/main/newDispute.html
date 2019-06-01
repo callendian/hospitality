@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Sign in </h2>
-<form method='post' action='/auth/signin'>
+<h2>Make a new Dispute/Complain</h2>
+<form action="/disputes" method="post">
     {% csrf_token %}
     {{form}}
     <input type="submit" value="Submit">

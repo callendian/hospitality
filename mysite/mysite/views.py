@@ -6,6 +6,7 @@ from main.models import *
 from rest_framework import status
 from mysite.serializer import VisitorReview
 import json
+from .forms import DisputeForm
 from django.core import serializers
 
 '''Responsible for creating, editing, deleting and viewing user review. Only the visitor can view
@@ -142,31 +143,30 @@ def disputes(request):
     if(not request.user.is_authenticated):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
     #Create a new dispute that takes in the visitor's Username and guide's username
-    if(request.method == "POST"):
-        data = checkValidJSONInput(request)
-        if("visitorUsername" not in data.keys()):
-            return HttpResponse("Input valid visitor name",  status=status.HTTP_400_BAD_REQUEST)
-        if("guideUsername" not in data.keys()):
-            return HttpResponse("Input valid guide name", status=status.HTTP_400_BAD_REQUEST)
-        if("description" not in data.keys()):
-            return HttpResponse("Input valid description",status=status.HTTP_400_BAD_REQUEST)
-        if("bookingID" not in data.keys()):
-            return HttpResponse("Input valid booking", status=status.HTTP_400_BAD_REQUEST)
+    if(request.method == "GET"):
+        form = DisputeForm()
+        return render(request, '../templates/main/newDispute.html', {'form': form}, status=200)
+    elif(request.method == "POST"):
+        form = DisputeForm(request.POST)
+        if(not form.is_valid()):
+            return HttpResponse("Invalid Dispute Request.", status=status.HTTP_400_BAD_REQUEST)
         try:
-            guide = Guide.objects.get(user=User.objects.get(username=data["guideUsername"]))
-            visitor = Visitor.objects.get(user=User.objects.get(username=data["visitorUsername"]))
-            booking = Booking.objects.get(id=data["bookingID"])
+            booking = Booking.objects.get(id=form.cleaned_data["bookingID"], visitor=Visitor.objects.get(user=request.user))
+            newDispute = Dispute(visitor=booking.visitor, 
+                                    guide=booking.tour.guide, description=form.cleaned_data["description"], booking=booking)
+            newDispute.save()
         except:
-            return HttpResponse("Guide or visitor not found.", status=status.HTTP_400_BAD_REQUEST)
-        newDispute = Dispute(visitor=visitor, 
-                                guide=guide, description=data["description"], booking=booking)
-        newDispute.save()
+            return HttpResponse("Booking id invalid", status=status.HTTP_400_BAD_REQUEST)
+
+        return HttpResponseRedirect("/disputes/" +str(newDispute.id))
+        '''
         cur_dict = json.loads(serializers.serialize('json', [newDispute, ]))[0]['fields']
         cur_dict["guide"] = formatUser(guide.user)
         cur_dict["visitor"] = formatUser(visitor.user)
         cur_dict["booking"] = formatBooking(booking)
         serializedObj = json.dumps(cur_dict)
         return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
+        '''
     #Delete a dispute given a dispute ID. 
     elif(request.method == "DELETE"):
         data = checkValidJSONInput(request)
