@@ -97,7 +97,7 @@ class Request(models.Model):
 # Individual appointments of tour guides and visitors
 class Booking(models.Model):
     tour = models.ForeignKey('Tour', on_delete=models.CASCADE)
-    visitor = models.ForeignKey(User, on_delete=models.CASCADE)
+    visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     createdAt = models.DateTimeField(auto_now_add=True)
