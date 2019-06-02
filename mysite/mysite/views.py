@@ -179,7 +179,7 @@ def disputes(request):
         except:
             return HttpResponse("Booking id invalid", status=status.HTTP_400_BAD_REQUEST)
 
-        return HttpResponseRedirect("/disputes/" +str(newDispute.id))
+        return HttpResponseRedirect("/allDisputes")
         '''
         cur_dict = json.loads(serializers.serialize('json', [newDispute, ]))[0]['fields']
         cur_dict["guide"] = formatUser(guide.user)
