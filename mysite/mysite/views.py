@@ -6,7 +6,7 @@ from main.models import *
 from rest_framework import status
 from mysite.serializer import VisitorReview
 import json
-from .forms import DisputeForm
+from .forms import DisputeForm, DisputeID
 from django.core import serializers
 
 '''Responsible for creating, editing, deleting and viewing user review. Only the visitor can view
@@ -117,6 +117,24 @@ def userreview(request):
 
 '''Responsible for rendering a webpage that displays dispute information given a disputeID.'''
 @csrf_exempt
+def showDisputes(request):
+    if(not request.user.is_authenticated):
+        return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
+    if(request.method == "GET"):
+        disputeObj = []
+        allDisputes = Dispute.objects.filter(visitor=Visitor.objects.get(user=request.user))
+        for dispute in allDisputes:
+            cur_dict2 = json.loads(serializers.serialize('json', [dispute, ]))[0]['fields']
+            cur_dict2["visitor"] = Visitor.objects.get(id=cur_dict2['visitor']).user
+            cur_dict2["guide"] = Guide.objects.get(id=cur_dict2['guide']).user
+            cur_dict2["bookingID"] = dispute.booking.id
+            disputeObj.append(cur_dict2)    
+        return render(request, '../templates/main/disputes.html', {'disputeObj': disputeObj}, status=200)
+
+
+'''Responsible for rendering a webpage that displays dispute information given a disputeID.'''
+'''
+@csrf_exempt
 def showDisputes(request, disputeID):
     if(not request.user.is_authenticated):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
@@ -136,6 +154,8 @@ def showDisputes(request, disputeID):
         cur_dict["bookingID"] = curCase.booking.id
         return render(request, '../templates/main/disputes.html', {'dispute': cur_dict}, status=200)
     
+'''
+
 '''Responsible for creating and resolving a dispute between guide and visitors. Only accessible
 to the visitor and the guide implicated on the dispute'''
 @csrf_exempt
@@ -145,7 +165,8 @@ def disputes(request):
     #Create a new dispute that takes in the visitor's Username and guide's username
     if(request.method == "GET"):
         form = DisputeForm()
-        return render(request, '../templates/main/newDispute.html', {'form': form}, status=200)
+        form2 = DisputeID()
+        return render(request, '../templates/main/newDispute.html', {'form': form, 'form2': form2}, status=200)
     elif(request.method == "POST"):
         form = DisputeForm(request.POST)
         if(not form.is_valid()):
@@ -202,11 +223,11 @@ def visitors(request):
                                 status=status.HTTP_401_UNAUTHORIZED)
         cur_dict = json.loads(serializers.serialize('json', [currentProf, ]))[0]['fields']
         bookingObj = []
-        allBooking = Booking.objects.filter(visitor=request.user)
+        allBooking = Booking.objects.filter(visitor=Visitor.objects.get(user=request.user))
         for booking in allBooking:
             curBooking = booking.tour
             cur_dict2 = json.loads(serializers.serialize('json', [booking, ]))[0]['fields']
-            cur_dict2["Guest"] = Visitor.objects.get(user=cur_dict2["visitor"]).user.username
+            cur_dict2["Guest"] = cur_dict2["visitor"]
             cur_dict2["tourType"] = curBooking.tourType
             cur_dict2["city"] = curBooking.city.name
             cur_dict2["description"] = curBooking.description
