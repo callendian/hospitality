@@ -25,5 +25,5 @@ urlpatterns = [
     path('userreview', views.userreview, name="userreview"),
     path('visitors', views.visitors, name="visitors"),
     path('allDisputes', views.showDisputes, name="showDisputes"),
-    path('disputes2', views.disputes, name="disputes")
+    path('disputes', views.disputes, name="disputes")
 ]
