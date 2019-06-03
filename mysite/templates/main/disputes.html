@@ -3,12 +3,14 @@
 {% block title %} List of Disputes{% endblock %}
 
 {% block content %}
-<h2>Disputes</h2>
-<ul> 
-    <li>Guest: {{dispute.visitor}}</li>
-    <li>Guide: {{dispute.guide}}</li>
-    <li>Description: {{dispute.description}}</li>
-    <li>Booking ID: {{dispute.bookingID}}</li>
-</ul>
+{% for dispute in disputeObj %}
+    <h2>Disputes</h2>
+    <ul> 
+        <li>Guest: {{dispute.visitor}}</li>
+        <li>Guide: {{dispute.guide}}</li>
+        <li>Description: {{dispute.description}}</li>
+        <li>Booking ID: {{dispute.bookingID}}</li>
+    </ul>
+{% endfor %}
 {% endblock %}
 
