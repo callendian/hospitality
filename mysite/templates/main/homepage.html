@@ -4,6 +4,17 @@
 
 {% block content %}
 
-<p>This is the homepage</p>
+{% if signed_in %}
+    <form action="auth/signout" method="get">
+        <input type="submit" value="Sign Out">
+    </form>
+{% else %}
+    <form action="auth/signin" method="get">
+        <input type="submit" value="Sign In">
+    </form>
+    <form action="auth/register" method="get">
+        <input type="submit" value="Register">
+    </form>
+{% endif %}
 
 {% endblock %}

@@ -18,7 +18,8 @@ BadRequestMessage = "Error interacting with database."
 @csrf_exempt
 def home(request):
     if request.method == 'GET':
-        return render(request, 'main/homepage.html')
+        signed_in = request.user.is_authenticated
+        return render(request, 'main/homepage.html', { 'signed_in': signed_in })
     else:
         return HttpResponse('Method not allowed on /.', status=405)
 
@@ -26,7 +27,6 @@ def home(request):
 # also can return a list of all guides that exist in the DB
 @csrf_exempt
 def guides(request):
-
     # returns a list of all the guides and information related to them including their
     # first and last name, username, and email
     if request.method == 'GET':
@@ -459,7 +459,7 @@ def saved(request):
    
     elif request.method == "DELETE":
         # DELETE: remove from bookmarked tours
-        data = json.loads(request.body.decode("utf-8"))
+        data = callDataBase(request)
         savedTour_id = data["savedtour_id"]
 
         try:
