@@ -137,7 +137,7 @@ def showDisputes(request):
                 cur_dict2["bookingID"] = dispute.booking.id
                 disputeObj.append(cur_dict2)   
 
-        return render(request, 'main/disputes.html', {'disputeObj': disputeObj}, status=200)
+        return render(request, 'main/disputes.html', {'disputeObj': disputeObj})
 
 
 '''Responsible for rendering a webpage that displays dispute information given a disputeID.'''
@@ -222,7 +222,8 @@ a webpage with the data from the database.
 def profile(request):
     if(not request.user.is_authenticated):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
-    #Responsible for populating a webpage with the data from the database. 
+    
+    # Responsible for populating a webpage with the data from the database. 
     if(request.method == "GET"):
         try:
             currentProf = Visitor.objects.get(user=request.user)
@@ -296,6 +297,7 @@ def profile(request):
         userToBeDeleted.delete()
         return HttpResponse("User Deleted", status=status.HTTP_200_OK)
 
+
 #Check if the JSON input in the request is valid json. 
 def checkValidJSONInput(request):
     try:
@@ -327,8 +329,6 @@ def convertDatetimeToString(o):
 	    return o.strftime(TIME_FORMAT)
 	elif isinstance(o, datetime.datetime):
 	    return o.strftime("%s %s" % (DATE_FORMAT, TIME_FORMAT))
-
-
 
 
 
