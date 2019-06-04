@@ -1,9 +1,31 @@
 {% extends 'base.html' %}
 
-{% block title %} Requested {% endblock %}
+{% block title %} Profile Page {% endblock %}
 
 {% block content %}
-<h1>Requests from Visitors</h1>
+
+<h2>Guide Profile</h2>
+<h4>User: {{ guide.user }}</h4>
+<h4>
+    Sex: 
+    {% if guide.gender == 'M' %}
+        Male
+    {% elif guide.gender == 'F' %}
+        Female
+    {% elif guide.gender == 'O' %}
+        Other
+    {% else %}
+        N/A
+    {% endif %}
+</h4>
+<h4>Bio</h4>
+<form action="/guide/" method="post">
+    {% csrf_token %}
+    <input name="bio" value="{{ guide.bio }}">
+    <input type="submit" value="Update Bio">
+</form>
+
+<h4>Requests from Visitors</h4>
 {% if reqs|length %}
 <ul>
     {% for r in reqs %}
@@ -39,4 +61,25 @@
 <p>No requests.</p>
 {% endif %}
 
+
+
+<h4>Bookings Approved</h4>
+{% if jobs|length %}
+    {% for b in jobs %}
+    <ul>
+        <li><strong>Booking ID</strong>: {{ b.booking_id }}</li>
+        <li><strong>Tour</strong>: <a href="/tours/{{ b.tour_id }}">{{ b.tour_title }}</a></li>
+        <li><strong>Tour Description</strong>: {{ b.tour_desc }}</li>
+        <li><strong>Price</strong>: {{ b.tour_price }}</li>
+        <li><strong>Guest</strong>: {{ b.visitor_name }}</li>
+        <li><strong>Start Date</strong>: {{ b.start_date }}</li>
+        <li><strong>End Date</strong>: {{ b.end_date }}</li>
+        <li><strong>Date Booked</strong>: {{ b.date_booked }}</li>
+        <br>
+        <li><strong>Review</strong>: {{ b.review }}</li>
+    </ul>
+    {% endfor %}
+{% else %}
+<p>No bookings found.</p>
+{% endif %}
 {% endblock %}
