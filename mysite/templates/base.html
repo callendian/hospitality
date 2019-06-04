@@ -24,10 +24,6 @@
                 </li>
                 {% if request.user.is_authenticated %}
                   <li>
-                    <a class="nav-link" href="/auth/signout">Sign Out</a>
-                  </li>
-                {% else %}
-                  <li>
                     <a class="nav-link" href="/profile">Profile</a>
                   </li>
                   <li>
@@ -48,6 +44,10 @@
                   <li>
                     <a class="nav-link" href="/allDisputes">View Disputes</a>
                   </li>
+                  <li>
+                    <a class="nav-link" href="/auth/signout">Sign Out</a>
+                  </li>
+                {% else %}
                   <li>
                     <a class="nav-link" href="/auth/signin">Sign In</a>
                   </li>
