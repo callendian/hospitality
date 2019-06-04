@@ -341,7 +341,7 @@ def request_tour(request, t_id):
 
     if request.method == 'GET':
         form = TourRequestForm()
-        return render(request, "main/request_tour.html", { "form": form, "t_id": t_id })
+        return render(request, "main/request_tour.html", { "form": form, "t": tour })
 
     elif request.method == 'POST':
         data = parseForm(request)
@@ -396,14 +396,13 @@ def requested(request):
                 start_date=req.start_date, 
                 end_date=req.end_date
             )
-        
+
+            try:
+                booking.save()
+            except:
+                return HttpResponse("Error booking tour.", status=400)
+
         req.delete()
-
-        try:
-            savedTour.save()
-        except:
-            return HttpResponse("Error saving tour.", status=400)
-
         return HttpResponseRedirect('/guide')
 
     else:
@@ -441,13 +440,13 @@ def guide(request):
                 'booking_id': b.id,
                 'tour_id': b.tour_id,
                 'tour_title': b.tour.title,
-                'tour_desc': b.tour_description,
-                'tour_price': b.tour_price,
+                'tour_desc': b.tour.description,
+                'tour_price': b.tour.price,
                 'visitor_name': b.visitor.first_name + ' ' + b.visitor.last_name,
                 'start_date': b.start_date,
                 'end_date': b.end_date,
                 'date_booked': b.createdAt,
-                'review': review
+                'review': list(review.values())[0] if review.exists() else None
             })
 
         return render(request, 'main/profile_guide.html', {

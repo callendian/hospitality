@@ -32,11 +32,11 @@
     <li style="background-color:lightblue;margin-bottom:1rem;">
         <p>
             <strong>Visitor</strong>: 
-            <a href="/reviews/visitor/{{ r.visitor_id }}">{{ r.visitor__first_name }} {{ r.visitor__last_name }}</a>
+            <a href="/visitor/{{ r.visitor_id }}">{{ r.visitor__first_name }} {{ r.visitor__last_name }}</a>
             <br><strong>Requested from</strong>: {{ r.last_modified }}
         </p>
         <p>
-            <strong>Tour</strong>: <a href="/tour/{{ r.tour_id }}">{{ r.tour__title }}</a>
+            <strong>Tour</strong>: <a href="/request/{{ r.tour_id }}">{{ r.tour__title }}</a>
             <br><strong>City</strong>: {{ r.tour__city__name }}
             <br><strong>Dates</strong>: {{ r.start_date }} - {{ r.end_date }}
             <br><strong>Price</strong>: ${{ r.tour__price }}
@@ -68,15 +68,16 @@
 <ul>
     {% for b in jobs %}
     <li style="background-color:lightblue;margin-bottom:1rem;">
-        <p><strong>Booking ID</strong>: {{ b.booking_id }}</p>
-        <p><strong>Tour</strong>: <a href="/tours/{{ b.tour_id }}">{{ b.tour_title }}</a></p>
-        <p><strong>Tour Description</strong>: {{ b.tour_desc }}</p>
-        <p><strong>Price</strong>: {{ b.tour_price }}</p>
-        <p><strong>Guest</strong>: {{ b.visitor_name }}</p>
-        <p><strong>Start Date</strong>: {{ b.start_date }}</p>
-        <p><strong>End Date</strong>: {{ b.end_date }}</p>
-        <p><strong>Date Booked</strong>: {{ b.date_booked }}</p>
-        <br>
+        <p>
+            <strong>Booking ID</strong>: {{ b.booking_id }}
+            <br><strong>Guest</strong>: {{ b.visitor_name }}
+            <br><strong>Tour</strong>: <a href="/request/{{ b.tour_id }}">{{ b.tour_title }}</a>
+            <br><strong>Tour Description</strong>: {{ b.tour_desc }}
+            <br><strong>Price</strong>: {{ b.tour_price }}
+            <br><strong>Start Date</strong>: {{ b.start_date }}
+            <br><strong>End Date</strong>: {{ b.end_date }}
+            <br><strong>Date Booked</strong>: {{ b.date_booked }}
+        </p>
         <p><strong>Review</strong>: {{ b.review }}</p>
     </li>
     {% endfor %}
@@ -90,6 +91,7 @@
 <form action="/tour/" method="get">
     <input type="submit" value="New Tour">
 </form>
+<br>
 {% if tours|length %}
 <ul>
     {% for t in tours %}
