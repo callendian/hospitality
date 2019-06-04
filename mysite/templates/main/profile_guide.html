@@ -29,7 +29,7 @@
 {% if reqs|length %}
 <ul>
     {% for r in reqs %}
-    <li style="background-color:lightblue">
+    <li style="background-color:lightblue;margin-bottom:1rem;">
         <p>
             <strong>Visitor</strong>: 
             <a href="/reviews/visitor/{{ r.visitor_id }}">{{ r.visitor__first_name }} {{ r.visitor__last_name }}</a>
@@ -65,21 +65,49 @@
 
 <h4>Bookings Approved</h4>
 {% if jobs|length %}
+<ul>
     {% for b in jobs %}
-    <ul>
-        <li><strong>Booking ID</strong>: {{ b.booking_id }}</li>
-        <li><strong>Tour</strong>: <a href="/tours/{{ b.tour_id }}">{{ b.tour_title }}</a></li>
-        <li><strong>Tour Description</strong>: {{ b.tour_desc }}</li>
-        <li><strong>Price</strong>: {{ b.tour_price }}</li>
-        <li><strong>Guest</strong>: {{ b.visitor_name }}</li>
-        <li><strong>Start Date</strong>: {{ b.start_date }}</li>
-        <li><strong>End Date</strong>: {{ b.end_date }}</li>
-        <li><strong>Date Booked</strong>: {{ b.date_booked }}</li>
+    <li style="background-color:lightblue;margin-bottom:1rem;">
+        <p><strong>Booking ID</strong>: {{ b.booking_id }}</p>
+        <p><strong>Tour</strong>: <a href="/tours/{{ b.tour_id }}">{{ b.tour_title }}</a></p>
+        <p><strong>Tour Description</strong>: {{ b.tour_desc }}</p>
+        <p><strong>Price</strong>: {{ b.tour_price }}</p>
+        <p><strong>Guest</strong>: {{ b.visitor_name }}</p>
+        <p><strong>Start Date</strong>: {{ b.start_date }}</p>
+        <p><strong>End Date</strong>: {{ b.end_date }}</p>
+        <p><strong>Date Booked</strong>: {{ b.date_booked }}</p>
         <br>
-        <li><strong>Review</strong>: {{ b.review }}</li>
-    </ul>
+        <p><strong>Review</strong>: {{ b.review }}</p>
+    </li>
     {% endfor %}
+</ul>
 {% else %}
 <p>No bookings found.</p>
 {% endif %}
+
+
+<h4>Tours Listed</h4>
+<form action="/tour/" method="get">
+    <input type="submit" value="New Tour">
+</form>
+{% if tours|length %}
+<ul>
+    {% for t in tours %}
+    <li style="background-color:lightblue;margin-bottom:1rem;">
+        <p><strong>Title</strong>: {{ t.title }}</p>
+        <p><strong>Tour Type</strong>: {{ t.tourType__name }}</p>
+        <p><strong>Description</strong>: {{ t.description }}</p>
+        <p><strong>Days</strong>: {{ t.days }}</p>
+        <p><strong>Price</strong>: ${{ t.price }}</p>
+        <form action="/tour/{{ t.id }}/" method="post">
+            {% csrf_token %}
+            <input type="submit" value="Delete">
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No tours listed.</p>
+{% endif %}
+
 {% endblock %}
