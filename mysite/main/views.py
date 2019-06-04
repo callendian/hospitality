@@ -8,7 +8,7 @@ import datetime
 import json
 from urllib.parse import parse_qs
 from main.models import *
-from .forms import TourSearchForm
+from .forms import *
 
 JSONDecodeFailMessage = "Error decoding JSON body. Please ensure your JSON file is valid."
 DatabaseErrorMessage = "Error interacting with database."
@@ -18,15 +18,17 @@ BadRequestMessage = "Error interacting with database."
 @csrf_exempt
 def home(request):
     if request.method == 'GET':
-        return render(request, 'main/homepage.html')
+        if request.user.is_authenticated:
+            return HttpResponseRedirect('/search')
+        else:
+            return render(request, 'main/homepage.html')
     else:
         return HttpResponse('Method not allowed on /.', status=405)
 
 # Responsible for creating new Tour Guides and allows them to update their profile when they want,
 # also can return a list of all guides that exist in the DB
 @csrf_exempt
-def guides(request):
-
+def guide(request):
     # returns a list of all the guides and information related to them including their
     # first and last name, username, and email
     if request.method == 'GET':
@@ -39,7 +41,7 @@ def guides(request):
 
         for guide in guides:
             result.append({
-                'id' : guide.id,
+                'id' : guide.id, 
                 'user' : formatUser(guide.user), 
                 'gender': guide.gender
             })
@@ -125,6 +127,12 @@ def guides(request):
     else:
         return HttpResponse('Method not allowed', 
             status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+@csrf_exempt
+def visitor(request):
+    return HttpResponse('visitor page.')
+
 
 # Creates a new review and allows user to update them later on if they want to change something,
 # also when given a guide, displays all reviews about them
@@ -249,11 +257,6 @@ def guide_reviews(request, id):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED)
     else:
         return HttpResponse('Must be logged in', status=status.HTTP_401_UNAUTHORIZED)
-
-
-@csrf_exempt
-def visitor_reviews(request, id):
-    return 0
 
 # Creates new tour appointments and allows guides to delete their tours if they want. Also
 # pulls up all tours that a specific guide has.
@@ -380,11 +383,18 @@ def callDataBase(request):
     except Exception: # Any other exception
         return HttpResponse(BadRequestMessage, status=status.HTTP_400_BAD_REQUEST)
 
+def parseForm(request):
+    try:
+        data = parse_qs(request.body.decode("utf-8"))
+        return data
+    except:
+        return HttpResponse('Failed to parse request', status=status.HTTP_400_BAD_REQUEST)
+
 
 @csrf_exempt
 def search(request):
     if not request.user or not request.user.is_authenticated:
-       return HttpResponse("Unauthorized.", status=401)
+        return HttpResponse("Unauthorized.", status=401)
 
     if request.method == "GET":
         # GET: form for searching trips
@@ -393,7 +403,7 @@ def search(request):
 
     elif request.method == "POST":
         # POST: search trips with given form data
-        data = parse_qs(request.body.decode("utf-8"))
+        data = parseForm(request)
 
         tourType = data["tourType"][0]
         city = data["city"][0]
@@ -415,12 +425,17 @@ def search(request):
                 'guide__gender'
             )
 
+        visitor = Visitor.objects.get(user=request.user)
+        saved = getSavedToursForVisitor(visitor=visitor)
+        saved = map(lambda x: x['tour_id'], saved)
+
         return render(
             request, 
             "main/search.html", 
             {
                 "form": TourSearchForm(), 
-                "search_results": list(search_results)
+                "search_results": list(search_results), 
+                "saved": list(saved)
             }
         )
 
@@ -442,24 +457,31 @@ def saved(request):
 
     elif request.method == "POST":
         # POST: search trips with given form data
-        data = parse_qs(request.body.decode("utf-8"))
+        data = parseForm(request)
+        
         tour_id = int(data["tour_id"][0])
+        tour = Tour.objects.get(pk=tour_id)
+        savedTour = SavedTour.objects.filter(visitor=visitor, tour=tour)
 
-        savedTour = SavedTour()
-        savedTour.tour = Tour.objects.get(pk=tour_id)
-        savedTour.visitor = visitor
+        if savedTour.exists():
+            savedTour.delete()
+        else:
+            savedTour = SavedTour(
+                visitor=visitor, 
+                tour=tour
+            )
 
-        try:
-            savedTour.save()
-        except:
-            return HttpResponse("Error saving tour.", status=400)
+            try:
+                savedTour.save()
+            except:
+                return HttpResponse("Error saving tour.", status=400)
         
         saved = getSavedToursForVisitor(visitor)
         return render(request, "main/saved.html", {"saved": list(saved)})
    
     elif request.method == "DELETE":
         # DELETE: remove from bookmarked tours
-        data = json.loads(request.body.decode("utf-8"))
+        data = callDataBase(request)
         savedTour_id = data["savedtour_id"]
 
         try:
@@ -472,6 +494,52 @@ def saved(request):
         except:
             saved = getSavedToursForVisitor(visitor)
             return render(request, "main/saved.html", {"saved": list(saved)})
+
+    else:
+        return HttpResponse("Method not allowed on this route", status=405)
+
+
+@csrf_exempt
+def request_tour(request, t_id):
+    if not request.user or not request.user.is_authenticated:
+        return HttpResponse("Unauthorized.", status=401)
+    
+    try:
+        visitor = Visitor.objects.get(user=request.user)
+        tour = Tour.objects.get(pk=t_id)
+    except:
+        return HttpResponse('Invalid request.', status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == 'GET':
+        form = TourRequestForm()
+        return render(request, "main/request_tour.html", { "form": form, "t_id": t_id })
+
+    elif request.method == 'POST':
+        data = parseForm(request)
+
+        start_date = '-'.join(
+            [data['start_date_month'][0],
+            data['start_date_day'][0], 
+            data['start_date_year'][0]])
+
+        end_date = '-'.join(
+            [data['end_date_month'][0],
+            data['end_date_day'][0], 
+            data['end_date_year'][0]])
+        
+        tourRequest = TourRequest(
+            visitor=visitor, 
+            tour=tour, 
+            start_date=datetime.datetime.strptime(start_date, "%m-%d-%Y").date(),
+            end_date=datetime.datetime.strptime(end_date, "%m-%d-%Y").date()
+        )
+
+        try:
+            tourRequest.save()
+        except:
+            return HttpResponse('Failed to request tour.', status=status.HTTP_400_BAD_REQUEST)
+        
+        return HttpResponseRedirect('/visitor')
 
     else:
         return HttpResponse("Method not allowed on this route", status=405)
@@ -491,11 +559,12 @@ def requested(request):
 
     elif request.method == "POST":
         # POST: accepts or declines a request and updates db accordingly
-        data = parse_qs(request.body.decode("utf-8"))
+        data = parseForm(request)
+
         req_pk = int(data["request_id"][0])
         decision = int(data["decision"][0])
 
-        req = Request.objects.get(pk=req_pk)
+        req = TourRequest.objects.get(pk=req_pk)
 
         if decision:
             booking = Booking(
@@ -504,9 +573,8 @@ def requested(request):
                 start_date=req.start_date, 
                 end_date=req.end_date
             )
-            req.delete()
-        else:
-            req.delete()
+        
+        req.delete()
 
         try:
             savedTour.save()
@@ -518,10 +586,6 @@ def requested(request):
 
     else:
         return HttpResponse("Method not allowed on this route", status=405)
-
-
-def profile(request, pid):
-    return 0
 
 
 def getSavedToursForVisitor(visitor):
@@ -540,7 +604,7 @@ def getSavedToursForVisitor(visitor):
     return saved
 
 def getToursRequestedFromGuide(guide):
-    reqs = Request.objects.select_related('tour__city').select_related('visitor').filter(tour__guide=guide).values(
+    reqs = TourRequest.objects.select_related('tour__city').select_related('visitor').filter(tour__guide=guide).values(
         'id', 
         'tour_id', 
         'tour__title', 

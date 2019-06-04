@@ -16,9 +16,9 @@
             <br><strong>Duration</strong>: {{ st.tour__days }} days
             <br><strong>Price</strong>: ${{ st.tour__price }}
         </p>
-        <form action="/saved/" method="get">
-            <!-- supposed to be delete but tbd in future, instead delete through api endpoint -->
-            <input type="hidden" name="savedtour_id" value="{{ st.id }}">
+        <form action="/saved/" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="tour_id" value="{{ st.tour_id }}">
             <input type="submit" value="Unsave">
         </form>
         <br>

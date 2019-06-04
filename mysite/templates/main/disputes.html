@@ -3,14 +3,18 @@
 {% block title %} List of Disputes{% endblock %}
 
 {% block content %}
-{% for dispute in disputeObj %}
-    <h2>Disputes</h2>
-    <ul> 
-        <li>Guest: {{dispute.visitor}}</li>
-        <li>Guide: {{dispute.guide}}</li>
-        <li>Description: {{dispute.description}}</li>
-        <li>Booking ID: {{dispute.bookingID}}</li>
-    </ul>
-{% endfor %}
+<h2>Disputes</h2>
+{% if disputeObj|length %}
+    {% for dispute in disputeObj %}
+        <ul> 
+            <li>Guest: {{dispute.visitor}}</li>
+            <li>Guide: {{dispute.guide}}</li>
+            <li>Description: {{dispute.description}}</li>
+            <li>Booking ID: {{dispute.bookingID}}</li>
+        </ul>
+    {% endfor %}
+{% else %}
+<p>No disputes found.</p>
+{% endif %}
 {% endblock %}
 

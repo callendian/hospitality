@@ -42,7 +42,7 @@ def register(request):
             newVisitor.save()
         except:
             return HttpResponse("Error in creating new user and guide")            
-        return HttpResponseRedirect("/auth/signin")
+        return HttpResponseRedirect("/")
     return HttpResponse("Method not allowed on /auth/register", status=405)
 
 @sensitive_post_parameters()
@@ -63,7 +63,7 @@ def signin(request):
             return HttpResponse("Invalid Credentials.", status=401)
         else:
             login(request, user)
-        return HttpResponseRedirect("/")
+        return HttpResponseRedirect("/search")
     return HttpResponse("Method not allowed on auth/signin.", status=405)
 
 @sensitive_post_parameters()
@@ -72,7 +72,8 @@ def signout(request):
     if(request.method == "GET"):
         if(request.user.is_authenticated):
             logout(request)
-            return HttpResponse("Sign out successful.", status=200)
+            return HttpResponseRedirect("/")
+            # return HttpResponse("Sign out successful.", status=200)
         return HttpResponse("Not logged in.", status=200)
     else:
         return HttpResponse("Method not allowed on auth/signout", status=405)

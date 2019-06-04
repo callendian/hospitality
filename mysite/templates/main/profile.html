@@ -3,21 +3,25 @@
 {% block title %} Profile Page {% endblock %}
 
 {% block content %}
-<h2>User Profile</h2>
+
+<h2>Visitor Profile</h2>
 <h4>User: {{ visitor.user }}</h4>
-<h4>Description: {{ visitor.description }}</h4>
-<h4>Sex: 
-    {% if visitor.sex == 'M' %}
+<h4>
+    Sex: 
+    {% if visitor.gender == 'M' %}
         Male
-    {% endif %}
-    {% if visitor.sex == 'F' %}
+    {% elif visitor.gender == 'F' %}
         Female
-    {% endif %}
-    {% if visitor.sex == 'O' %}
+    {% elif visitor.gender == 'O' %}
         Other
-    {% endif %}</h4>
+    {% else %}
+        N/A
+    {% endif %}
+</h4>
+<h4>Guide Bio: {{ guideBio }}</h4>
+<h4>Bookings</h4>
+{% if bookingObj|length %}
     {% for booking in bookingObj %}
-    <h4>Bookings</h4>
     <ul> 
         <li>Guest: {{visitor.user}}</li>
         <li>Tour: {{booking.tour}}</li>
@@ -27,7 +31,9 @@
         <li>Days: {{booking.days}}</li>
         <li>Price: {{booking.price}}</li>
     </ul>
-
     {% endfor %}
+{% else %}
+<p>No bookings found.</p>
+{% endif %}
 {% endblock %}
 

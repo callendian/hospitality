@@ -4,6 +4,11 @@
 
 {% block content %}
 
-<p>This is the homepage</p>
+<form action="auth/signin" method="get">
+    <input type="submit" value="Sign In">
+</form>
+<form action="auth/register" method="get">
+    <input type="submit" value="Register">
+</form>
 
 {% endblock %}

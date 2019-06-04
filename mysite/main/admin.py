@@ -17,7 +17,7 @@ class TourAdmin(admin.ModelAdmin):
 class SavedTourAdmin(admin.ModelAdmin):
     pass
 
-class RequestAdmin(admin.ModelAdmin):
+class TourRequestAdmin(admin.ModelAdmin):
     pass
 
 class BookingAdmin(admin.ModelAdmin):
@@ -50,7 +50,7 @@ admin.site.register(Visitor, VisitorAdmin)
 admin.site.register(TourType, TourTypeAdmin)
 admin.site.register(Tour, TourAdmin)
 admin.site.register(SavedTour, SavedTourAdmin)
-admin.site.register(Request, RequestAdmin)
+admin.site.register(TourRequest, TourRequestAdmin)
 admin.site.register(Booking, BookingAdmin)
 admin.site.register(TourReview, TourReviewAdmin)
 admin.site.register(VisitorReview, VisitorReviewAdmin)
