@@ -56,7 +56,7 @@ class TourType(models.Model):
 # Represents a tour appointment between 1 guide and 1 user
 class Tour(models.Model):
     guide = models.ForeignKey('Guide', on_delete=models.CASCADE)
-    title = models.CharField(max_length=50, default="Tour")
+    title = models.CharField(max_length=50, default="Tour", blank=True)
     tourType = models.ForeignKey('TourType', on_delete=models.CASCADE)
     city = models.ManyToManyField('City')
     description = models.TextField(null=True, blank=True)
@@ -72,16 +72,16 @@ class SavedTour(models.Model):
 
 
 # Request to book
-class Request(models.Model):
-    tour = models.ForeignKey('Tour', on_delete=models.CASCADE)
-    visitor = models.ForeignKey(User, on_delete=models.CASCADE)
+class TourRequest(models.Model):
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE)
+    visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     last_modified = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
         if self.end_date < self.start_date:
-            return 'End date cannot be before start date'
+            raise ValidationError('End date cannot be before start date')
 
         # check for time conflicts, i.e. if the guide has any other tours scheduled for that time
         scheduled_tours = Booking.objects.filter(
@@ -89,6 +89,7 @@ class Request(models.Model):
             start_date__range=(self.start_date, self.end_date),
             end_date__range=(self.start_date, self.end_date)
         )
+        
         if scheduled_tours.exists():
             raise ValidationError('Schedule Conflict')
         super().save(*args, **kwargs)

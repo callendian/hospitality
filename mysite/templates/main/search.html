@@ -25,12 +25,16 @@
         <form action="/saved/" method="post">
             {% csrf_token %}
             <input type="hidden" name="tour_id" value="{{ t.id }}">
-            <input type="submit" value="Save">
+            {% if t.id in saved %}
+                <input type="submit" value="Unsave">
+            {% else %}
+                <input type="submit" value="Save">
+            {% endif %}
         </form>
         <br>
-        <form action="/tour/{{ t.id }}" method="post">
+        <form action="/request/{{ t.id }}" method="post">
             {% csrf_token %}
-            <input type="submit" value="Book This Guide">
+            <input type="submit" value="Request">
         </form>
     </li>
     {% endfor %}

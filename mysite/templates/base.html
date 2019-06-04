@@ -12,7 +12,7 @@
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">TourGuides</a>
+        <a class="navbar-brand" href="/">TourGuides</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -22,18 +22,39 @@
                 <li class="nav-item active">
                     <a class="nav-link" href="/">Home</a>
                 </li>
-                <li>
-                  <a class="nav-link" href="/visitors">Profile</a>
-                </li>
-                <li>
-                  <a class="nav-link" href="/">Tours</a>
-                </li>
-                <li>
-                  <a class="nav-link" href="/disputes">Create Disputes</a>
-                </li>
-                <li>
-                  <a class="nav-link" href="/allDisputes">View Disputes</a>
-                </li>
+                {% if request.user.is_authenticated %}
+                  <li>
+                    <a class="nav-link" href="/auth/signout">Sign Out</a>
+                  </li>
+                {% else %}
+                  <li>
+                    <a class="nav-link" href="/profile">Profile</a>
+                  </li>
+                  <li>
+                    <a class="nav-link" href="/saved">Saved</a>
+                  </li>
+                  <li>
+                    <a class="nav-link" href="/requests">Requests</a>
+                  </li>
+                  <li>
+                    <a class="nav-link" href="/bookings">Bookings</a>
+                  </li>
+                  <li>
+                    <a class="nav-link" href="/tours">Tours</a>
+                  </li>
+                  <li>
+                    <a class="nav-link" href="/disputes">Create Disputes</a>
+                  </li>
+                  <li>
+                    <a class="nav-link" href="/allDisputes">View Disputes</a>
+                  </li>
+                  <li>
+                    <a class="nav-link" href="/auth/signin">Sign In</a>
+                  </li>
+                  <li>
+                    <a class="nav-link" href="/auth/register">Register</a>
+                  </li>
+                {% endif %}
             </ul>
        
         </div>
