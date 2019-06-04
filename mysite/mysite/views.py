@@ -6,7 +6,7 @@ from main.models import *
 from rest_framework import status
 from mysite.serializer import VisitorReview
 import json
-from .forms import DisputeForm, DisputeID
+from .forms import DisputeForm, DisputeID, VisitorReviewForm
 from django.core import serializers
 
 '''Responsible for creating, editing, deleting and viewing user review. Only the visitor can view
@@ -16,63 +16,27 @@ def userreview(request):
     if(not request.user.is_authenticated):
             return HttpResponse("Unauthorized. Please Sign in", 
                                 status=status.HTTP_401_UNAUTHORIZED)
-    #Returns the review of the logged in user. 
     if(request.method == "GET"):
-        currentProf = Visitor.objects.get(user=request.user)
-        if(currentProf == None):
-            return HttpResponse("You have to be a visitor to view visitor review.", 
-                                status=status.HTTP_401_UNAUTHORIZED)
-        try:
-            curReview = VisitorReview.objects.get(visitor=currentProf)
-        except:
-            return HttpResponse("The current user has no reviews", status=status.HTTP_200_OK)
-        cur_dict = json.loads(serializers.serialize('json', [curReview, ]))[0]['fields']
-        cur_dict["visitor"] = formatUser(User.objects.get(id=cur_dict["visitor"]))
-        serializedObj = json.dumps(cur_dict)
-        return HttpResponse(serializedObj, 
-                            content_type="application/json", status=status.HTTP_200_OK)
-    #Write a review for a particular user (for Guides)
+        form = VisitorReviewForm()
+        return render(request, '../templates/main/newUserReview.html', {'form': form}, status=200)
     elif(request.method == "POST"):
-        if(not request.user.is_authenticated):
-            return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
-        isGuide = Guide.objects.filter(user=request.user)
-        if(len(isGuide) == 0):
-            return HttpResponse("You have to be a guide to write visitor review.", 
-                                    status=status.HTTP_401_UNAUTHORIZED)
-        data = checkValidJSONInput(request)
-        if (not "bookingID" in data.keys()):
-            return HttpResponse("Review Content is required.", content_type="text/plain",
-            status=status.HTTP_400_BAD_REQUEST)
+        form = VisitorReviewForm(request.POST)
+        if(not form.is_valid()):
+            return HttpResponse("Invalid Dispute Request.", status=status.HTTP_400_BAD_REQUEST)
         curGuide = Guide.objects.get(user=request.user)
-        curBooking = Booking.objects.get(id=data["bookingID"])
-        print(curGuide)
-        print(User.objects.get(username=data["visitorName"]))
-        print(Visitor.objects.get(user=User.objects.get(username=data["visitorName"])))
-        try:
-            newReview = VisitorReview(visitor=Visitor.objects.get(
-                                        user=User.objects.get(username=data["visitorName"])),
-                                                                content=data["content"],
-                                                                reviewer=curGuide,
-                                                                booking=curBooking,
-                                                                rating=data["rating"])
-        except:
-            return HttpResponse("Enter valid json input", status=status.HTTP_400_BAD_REQUEST)
-        try:
-            newReview.save()
-        except:
-            return HttpResponse("You have already written a review for this person", 
-                                status=status.HTTP_400_BAD_REQUEST)
-        cur_dict = json.loads(serializers.serialize('json', [newReview, ]))[0]['fields']
-        cur_dict["visitor"] = formatUser(User.objects.get(id=cur_dict["visitor"]))
-        cur_dict["reviewer"] = formatUser(curGuide.user)
-        cur_dict["booking"] = formatBooking(curBooking)
-        cur_dict["createdAt"] = str(cur_dict["createdAt"])
-        cur_dict["editedAt"] = str(cur_dict["editedAt"])
-        print(cur_dict)
-        print(str(cur_dict["editedAt"]))
-        serializedObj = json.dumps(cur_dict)
-        return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
-    #Delete a previously written review
+        curBooking = Booking.objects.get(id=form.cleaned_data["bookingID"])
+        if(curBooking.tour.guide != curGuide):
+            return HttpResponse("You have to be a guide for this tour!", status=status.HTTP_400_BAD_REQUEST)
+        newReview = VisitorReview(visitor=Visitor.objects.get(
+                                                            user=curBooking.visitor.user),
+                                                            content=form.cleaned_data["description"],
+                                                            reviewer=curGuide,
+                                                            booking=curBooking,
+                                                            rating=form.cleaned_data["rating"])
+        newReview.save()
+        return HttpResponseRedirect("/profile")
+    #Delete a dispute given a dispute ID. 
+    #Returns the review of the logged in user. 
     elif(request.method == "DELETE"):
         isGuide = Guide.objects.filter(user=request.user)
         if(len(isGuide) == 0):
@@ -122,7 +86,6 @@ def showDisputes(request):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
     if(request.method == "GET"):
         disputeObj = []
-
         try:
             allDisputes = Dispute.objects.filter(visitor=Visitor.objects.get(user=request.user))
         except:
@@ -233,7 +196,15 @@ def profile(request):
         cur_dict = json.loads(serializers.serialize('json', [currentProf, ]))[0]['fields']
         bookingObj = []
         allBooking = Booking.objects.filter(visitor=Visitor.objects.get(user=request.user))
+        cur_dict = None
+        print(cur_dict)
         for booking in allBooking:
+            try:
+                curReview = VisitorReview.objects.get(visitor=currentProf, booking=booking)
+                cur_dict = json.loads(serializers.serialize('json', [curReview, ]))[0]['fields']
+                cur_dict["visitor"] = formatUser(User.objects.get(id=cur_dict["visitor"]))
+            except:
+                pass
             curBooking = booking.tour
             cur_dict2 = json.loads(serializers.serialize('json', [booking, ]))[0]['fields']
             cur_dict2["Guest"] = cur_dict2["visitor"]
@@ -242,6 +213,12 @@ def profile(request):
             cur_dict2["description"] = curBooking.description
             cur_dict2["days"] = curBooking.days
             cur_dict2["price"] = curBooking.price
+            if(cur_dict != None):
+                cur_dict2["guideReview"] = cur_dict['content']
+                cur_dict2["guideRating"] = cur_dict["rating"]
+            else:
+                cur_dict2["guideReview"] = "None"
+                cur_dict2["guideRating"] = "None"
             bookingObj.append(cur_dict2)
         return render(request, '../templates/main/profile.html', 
                         {
