@@ -163,8 +163,8 @@ class VisitorReview(models.Model):
 # Disputes on bookings
 class Dispute(models.Model):
     booking = models.OneToOneField('Booking', on_delete=models.CASCADE, null=True)
-    visitor = models.OneToOneField('Visitor', on_delete=models.CASCADE, null=True)
-    guide = models.OneToOneField('Guide', on_delete=models.CASCADE, null=True)
+    visitor = models.ForeignKey('Visitor', on_delete=models.CASCADE, null=True)
+    guide = models.ForeignKey('Guide', on_delete=models.CASCADE, null=True)
     description = models.CharField(max_length=500)
     createdAt = models.DateTimeField(auto_now_add=True)
     editedAt = models.DateTimeField(auto_now=True)
