@@ -5,10 +5,19 @@
 {% block content %}
 
 <h1>Request Tour</h1>
-<form action="/request/{{ t_id }}" method="post">
+<form action="/request/{{ t.id }}/" method="post">
     {% csrf_token %}
+    <div style="background-color:lightblue;margin-bottom:1rem;">
+        <p>
+            <strong>Guide</strong>: 
+            {{ t.guide.first_name }} {{ t.guide.last_name }}, {{ t.guide.gender }}, {{ t.guide.email }}
+        </p>
+        <p><strong>Description</strong>: {{ t.description }}</p>
+        <p><strong>Duration</strong>: {{ t.days }} days</p>
+        <p><strong>Price</strong>: ${{ t.price }}</p>
+    </div>
     {{ form }}
-    <input type="submit" value="Submit">
+    <input type="submit" value="Submit Request">
 </form>
 
 {% endblock %}

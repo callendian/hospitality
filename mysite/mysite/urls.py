@@ -21,7 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('auth.urls')), 
     path('', include('main.urls')), 
-    path('main/', include('main.urls')), 
+    path('main/', include('main.urls')),
     path('userreview', views.userreview, name="userreview"),
     path('profile', views.profile, name="profile"),
     path('allDisputes', views.showDisputes, name="showDisputes"),

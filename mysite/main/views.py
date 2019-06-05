@@ -25,109 +25,6 @@ def home(request):
     else:
         return HttpResponse('Method not allowed on /.', status=405)
 
-# Responsible for creating new Tour Guides and allows them to update their profile when they want,
-# also can return a list of all guides that exist in the DB
-@csrf_exempt
-def guide(request):
-    # returns a list of all the guides and information related to them including their
-    # first and last name, username, and email
-    if request.method == 'GET':
-        try:
-            guides = Guide.objects.all()
-        except DatabaseError: # If database throws an error
-                return HttpResponse(DatabaseErrorMessage, 
-                    status=status.HTTP_400_BAD_REQUEST)
-        result = []
-
-        for guide in guides:
-            result.append({
-                'id' : guide.id, 
-                'user' : formatUser(guide.user), 
-                'gender': guide.gender
-            })
-
-        return JsonResponse(result, safe=False)
-
-    # creates a new guide and adds it to the database
-    elif request.method == 'POST':
-        if request.user.is_authenticated:
-            # retrieve input from JSON request
-            data = callDataBase(request)
-            if isinstance(data, HttpResponse):
-                return data
-            # makes sure name parameter was passed in
-            if 'name' not in data:
-                return HttpResponse('name is a required field', 
-                    status=status.HTTP_400_BAD_REQUEST)
-            
-            try:
-                newGuide = Guide(
-                    user=request.user, 
-                    first_name=request.user.first_name, 
-                    last_name=request.user.last_name, 
-                    email=request.user.email, 
-                    gender=data['gender'] if 'gender' in data else 'N/A', 
-                    bio=data['bio'] if 'bio' in data else ''
-                )
-                newGuide.save()
-
-            except DatabaseError: # If database throws an error
-                return HttpResponse(DatabaseErrorMessage, 
-                    status=status.HTTP_400_BAD_REQUEST)
-            
-            result = {
-                'user': formatUser(guide.user),
-                'gender': guide.gender,
-                'bio': guide.bio,
-                'createdAt': guide.createdAt
-            }
-            return JsonResponse(result, safe=False, status=status.HTTP_201_CREATED)
-        else:
-            return HttpResponse('Must be logged in', status=status.HTTP_401_UNAUTHORIZED)
-
-    # allows a guide to update information about their account
-    elif request.method == 'PATCH':
-        if request.user.is_authenticated:
-            guide = Guide.objects.get(user=request.user)
-
-            if not guide:
-                return HttpResponse('Can only edit your own profile', 
-                    status=status.HTTP_401_UNAUTHORIZED)
-
-            # retrieve input from JSON request
-            data = callDataBase(request)
-
-            if isinstance(data, HttpResponse):
-                return data
-
-            # updates name value
-            guide.first_name = data['first_name'] if 'first_name' in data else guide.first_name
-            guide.last_name = data['last_name'] if 'last_name' in data else guide.last_name
-            guide.email = data['email'] if 'email' in data else guide.email
-            guide.gender = data['gender'] if 'gender' in data else guide.gender
-            guide.bio = data['bio'] if 'bio' in data else guide.bio
-
-            try:
-                guide.save()
-            except DatabaseError: # If database throws an error
-                return HttpResponse(DatabaseErrorMessage, 
-                    status=status.HTTP_400_BAD_REQUEST)
-
-            result = {
-                'user': formatUser(guide.user),
-                'gender': guide.gender,
-                'bio': guide.bio, 
-                'createdAt': guide.createdAt
-            }
-            return JsonResponse(result, safe=False, status=status.HTTP_201_CREATED)
-            
-        else:
-            return HttpResponse('Must be logged in', 
-                status=status.HTTP_401_UNAUTHORIZED)
-    else:
-        return HttpResponse('Method not allowed', 
-            status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
 
 @csrf_exempt
 def visitor(request):
@@ -258,137 +155,69 @@ def guide_reviews(request, id):
     else:
         return HttpResponse('Must be logged in', status=status.HTTP_401_UNAUTHORIZED)
 
-# Creates new tour appointments and allows guides to delete their tours if they want. Also
-# pulls up all tours that a specific guide has.
+
+# Creates new tour listing
 @csrf_exempt
-def tours(request, id):
+def create_tour(request):
     if not request.user.is_authenticated:
-        return HttpResponse('Must be logged in', status=status.HTTP_401_UNAUTHORIZED)
+        return HttpResponse("Unauthorized. Please Sign in.", status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        guide = Guide.objects.get(user=request.user)
+    except DatabaseError:
+        return HttpResponse(DatabaseErrorMessage, status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == 'GET':
-        try:
-            guide = Guide.objects.get(creator=request.user)
-        except:
-            return HttpResponse('Must be a guide to access', 
-                status=status.HTTP_401_UNAUTHORIZED)
-        upcomingTours = Tours.objects.filter(Guide=guide)
-        result = []
-        for tour in upcomingTours:
-            result.append({
-                'Guest' : formatUser(tour.Guest),
-                'Start' : tour.Start,
-                'End' : tour.End,
-                'notesToGuide' : tour.notesToGuide,
-                'id' : tour.id
-            })
-        return render(request, 'main/tours.html', {'tours': result, 
-            'guide' : guide.name})
+        form = TourCreationForm()
+        return render(request, "main/create_tour.html", {"form": form})
+
     elif request.method == 'POST':
-        # check to make sure the specified guide exists
+        data = parseForm(request)
+        tour = Tour(
+            guide=guide, 
+            title=data['title'][0], 
+            tourType=TourType.objects.get(name=data['tourType'][0]), 
+            description=data['description'][0], 
+            days=int(data['days'][0]), 
+            price=float(data['price'][0])
+        )
+
         try:
-            guide = Guide.objects.get(id=id)
+            tour.save()
+            tour.city.add(City.objects.get(name=data['city'][0]))
+            return HttpResponseRedirect('/guide')
         except:
-            return HttpResponse("Guide doesn't exist", 
-                status=status.HTTP_400_BAD_REQUEST)
-        try:
-            print(request.user)
-            guest = Visitors.objects.get(user=request.user)
-            print(guest)
-        except:
-            return HttpResponse("Visitor doesn't exist", 
-                    status=status.HTTP_400_BAD_REQUEST)     
-        # retrieve input from JSON request
-        data = callDataBase(request)
-        print(data)
-        if isinstance(data, HttpResponse):
-            return data
-        # checks to make sure each field was filled out in the JSON request
-        if 'Start' not in data:
-            return HttpResponse('Start is a requaired field', 
-                    status=status.HTTP_400_BAD_REQUEST)
-        if 'End' not in data:
-            return HttpResponse('End is a requaired field', 
-                status=status.HTTP_400_BAD_REQUEST)
-        if 'notesToGuide' not in data:
-            notesToGuide = ""
-        else:
-            notesToGuide = data['notesToGuide']
-        try:
-            newTour = Tours(Guest=guest,
-                Guide=guide,
-                Start=datetime.datetime.strptime(data['Start'], 
-                        "%Y-%m-%d %H:%M"),
-                End=datetime.datetime.strptime(data['End'], 
-                        "%Y-%m-%d %H:%M"),
-                createdAt=datetime.datetime.now(),
-                editedAt=datetime.datetime.now(),
-                notesToGuide=notesToGuide)
-            newTour.save()
-        except DatabaseError: # If database throws an error
-            return HttpResponse(DatabaseErrorMessage, 
-                status=status.HTTP_400_BAD_REQUEST)
-        result = {
-            'creator/visitor' : formatUser(request.user),
-            'Guide' : guide.name,
-            'Start' : newTour.Start,
-            'End' : newTour.End,
-            'createdAt' : newTour.createdAt,
-            'editedAt' : newTour.editedAt,
-            'notesToGuide' : newTour.notesToGuide,
-        }
-        return JsonResponse(result, safe=False, status=status.HTTP_201_CREATED)
-    elif(request.method == "DELETE"):
-            try:
-                    guide = Guide.objects.get(creator=request.user)
-            except:
-                    return HttpResponse("Must be Guide of Tour to delete", 
-                            status=status.HTTP_401_UNAUTHORIZED)
-            # retrieve input from JSON request
-            data = callDataBase(request)
-            if isinstance(data, HttpResponse):
-                    return data
-            if 'id' not in data:
-                    return HttpResponse('id is a requaired field', 
-                            status=status.HTTP_400_BAD_REQUEST)
-            tour = Tours.objects.get(id=data['id'])
-            tour.delete()
-            return HttpResponse("Tour Deleted", content_type="plain/text", 
-                    status=status.HTTP_200_OK)
+            return HttpResponse('Error creating tour.', status=status.HTTP_400_BAD_REQUEST)
+
     else:
-        return HttpResponse('Method not allowed', 
-            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return HttpResponse('Method not allowed',
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-# helper function that formats user data into a dictionary
-def formatUser(user):
-    return ({'username' : user.username, 
-        'first_name' : user.first_name,  
-        'last_name' : user.last_name, 
-        'email' : user.email})
 
-def formatRole(user):
-    return ({
-        'first_name': user.first_name, 
-        'last_name': user.last_name, 
-        'email': user.email, 
-        'gender': user.gender
-    })
+@csrf_exempt
+def tour(request, id):
+    if not request.user.is_authenticated:
+        return HttpResponse("Unauthorized. Please Sign in.", status=status.HTTP_401_UNAUTHORIZED)
 
-# calls Database and either returns data passed in by user or an error that occured
-def callDataBase(request):
-    try: # Decode post body into JSON
-        data = json.loads(request.body.decode("utf-8"))
-        return data
-    except json.JSONDecodeError: # If JSON failed to decode
-        return HttpResponse(JSONDecodeFailMessage, status=status.HTTP_400_BAD_REQUEST)
-    except Exception: # Any other exception
-        return HttpResponse(BadRequestMessage, status=status.HTTP_400_BAD_REQUEST)
-
-def parseForm(request):
     try:
-        data = parse_qs(request.body.decode("utf-8"))
-        return data
-    except:
-        return HttpResponse('Failed to parse request', status=status.HTTP_400_BAD_REQUEST)
+        guide = Guide.objects.get(user=request.user)
+        tour = Tour.objects.get(pk=id)
+    except DatabaseError:
+        return HttpResponse(DatabaseErrorMessage, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == 'POST':
+        if tour.guide != guide:
+            return HttpResponse("You can only delete your own tour listing.", status=status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            tour.delete()
+            return HttpResponseRedirect('/guide')
+        except:
+            return HttpResponse("Error deleting tour listing", status=status.HTTP_400_BAD_REQUEST)
+
+    else:
+        return HttpResponse('Method not allowed',
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @csrf_exempt
@@ -512,7 +341,7 @@ def request_tour(request, t_id):
 
     if request.method == 'GET':
         form = TourRequestForm()
-        return render(request, "main/request_tour.html", { "form": form, "t_id": t_id })
+        return render(request, "main/request_tour.html", { "form": form, "t": tour })
 
     elif request.method == 'POST':
         data = parseForm(request)
@@ -549,16 +378,10 @@ def request_tour(request, t_id):
 def requested(request):
     if not request.user or not request.user.is_authenticated:
         return HttpResponse("Unauthorized.", status=401)
-   
-    guide = Guide.objects.get(user=request.user)
-
-    if request.method == "GET":
-        # GET: renders a list of tours requested by visitors
-        reqs = getToursRequestedFromGuide(guide)
-        return render(request, "main/requested.html", { "reqs": list(reqs) })
 
     elif request.method == "POST":
         # POST: accepts or declines a request and updates db accordingly
+        guide = Guide.objects.get(user=request.user)
         data = parseForm(request)
 
         req_pk = int(data["request_id"][0])
@@ -573,20 +396,116 @@ def requested(request):
                 start_date=req.start_date, 
                 end_date=req.end_date
             )
-        
+
+            try:
+                booking.save()
+            except:
+                return HttpResponse("Error booking tour.", status=400)
+
         req.delete()
-
-        try:
-            savedTour.save()
-        except:
-            return HttpResponse("Error saving tour.", status=400)
-
-        reqs = getToursRequestedFromGuide(guide)
-        return render(request, "main/requested.html", {"reqs": list(reqs)})
+        return HttpResponseRedirect('/guide')
 
     else:
         return HttpResponse("Method not allowed on this route", status=405)
 
+
+@csrf_exempt
+def guide(request):
+    if not request.user.is_authenticated:
+        return HttpResponse("Unauthorized. Please Sign in.", status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        guide = Guide.objects.get(user=request.user)
+    except DatabaseError:
+            return HttpResponse(DatabaseErrorMessage, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == 'GET':
+        reqs = getToursRequestedFromGuide(guide)
+        bookings = Booking.objects.select_related(
+            'visitor').select_related('tour').filter(tour__guide=guide)
+        tours = Tour.objects.filter(guide=guide).select_related('tourType').values(
+            'id', 
+            'title', 
+            'tourType__name', 
+            'description', 
+            'days', 
+            'price'
+        )
+
+        jobs = []
+        for b in bookings:
+            review = VisitorReview.objects.filter(booking=b, reviewer=guide)
+
+            jobs.append({
+                'booking_id': b.id,
+                'tour_id': b.tour_id,
+                'tour_title': b.tour.title,
+                'tour_desc': b.tour.description,
+                'tour_price': b.tour.price,
+                'visitor_name': b.visitor.first_name + ' ' + b.visitor.last_name,
+                'start_date': b.start_date,
+                'end_date': b.end_date,
+                'date_booked': b.createdAt,
+                'review': list(review.values())[0] if review.exists() else None
+            })
+
+        return render(request, 'main/profile_guide.html', {
+            'guide': guide,
+            'reqs': reqs,
+            'jobs': jobs, 
+            'tours': list(tours)
+        })
+
+    # allows a guide to update bio
+    elif request.method == 'POST':
+        data = parseForm(request)
+        guide.bio = data['bio'][0]
+        guide.save()
+
+        return HttpResponseRedirect('/guide')
+
+    else:
+        return HttpResponse('Method not allowed',
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+######################
+## HELPER FUNCTIONS ##
+######################
+
+# helper function that formats user data into a dictionary
+def formatUser(user):
+    return ({'username': user.username,
+             'first_name': user.first_name,
+             'last_name': user.last_name,
+             'email': user.email})
+
+
+def formatRole(user):
+    return ({
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'email': user.email,
+        'gender': user.gender
+    })
+
+# calls Database and either returns data passed in by user or an error that occured
+def callDataBase(request):
+    try:  # Decode post body into JSON
+        data = json.loads(request.body.decode("utf-8"))
+        return data
+    except json.JSONDecodeError:  # If JSON failed to decode
+        return HttpResponse(JSONDecodeFailMessage, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:  # Any other exception
+        return HttpResponse(BadRequestMessage, status=status.HTTP_400_BAD_REQUEST)
+
+
+def parseForm(request):
+    try:
+        data = parse_qs(request.body.decode("utf-8"))
+        return data
+    except:
+        return HttpResponse('Failed to parse request', status=status.HTTP_400_BAD_REQUEST)
 
 def getSavedToursForVisitor(visitor):
     saved = SavedTour.objects.select_related('tour__city').select_related('tour__guide').filter(visitor=visitor).values(

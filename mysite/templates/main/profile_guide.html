@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %} Profile Page {% endblock %}
+
+{% block content %}
+
+<h2>Guide Profile</h2>
+<h4>User: {{ guide.user }}</h4>
+<h4>
+    Sex: 
+    {% if guide.gender == 'M' %}
+        Male
+    {% elif guide.gender == 'F' %}
+        Female
+    {% elif guide.gender == 'O' %}
+        Other
+    {% else %}
+        N/A
+    {% endif %}
+</h4>
+<h4>Bio</h4>
+<form action="/guide/" method="post">
+    {% csrf_token %}
+    <input name="bio" value="{{ guide.bio }}">
+    <input type="submit" value="Update Bio">
+</form>
+
+<h4>Requests from Visitors</h4>
+{% if reqs|length %}
+<ul>
+    {% for r in reqs %}
+    <li style="background-color:lightblue;margin-bottom:1rem;">
+        <p>
+            <strong>Visitor</strong>: 
+            <a href="/visitor/{{ r.visitor_id }}">{{ r.visitor__first_name }} {{ r.visitor__last_name }}</a>
+            <br><strong>Requested from</strong>: {{ r.last_modified }}
+        </p>
+        <p>
+            <strong>Tour</strong>: <a href="/request/{{ r.tour_id }}">{{ r.tour__title }}</a>
+            <br><strong>City</strong>: {{ r.tour__city__name }}
+            <br><strong>Dates</strong>: {{ r.start_date }} - {{ r.end_date }}
+            <br><strong>Price</strong>: ${{ r.tour__price }}
+        </p>
+        <br>
+        <form action="/requested/" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="request_id" value="{{ r.id }}">
+            <input type="hidden" name="decision" value="1">
+            <input type="submit" value="Accept">
+        </form>
+        <form action="/requested/" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="request_id" value="{{ r.id }}">
+            <input type="hidden" name="decision" value="0">
+            <input type="submit" value="Decline">
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No requests.</p>
+{% endif %}
+
+
+
+<h4>Bookings Approved</h4>
+{% if jobs|length %}
+<ul>
+    {% for b in jobs %}
+    <li style="background-color:lightblue;margin-bottom:1rem;">
+        <p>
+            <strong>Booking ID</strong>: {{ b.booking_id }}
+            <br><strong>Guest</strong>: {{ b.visitor_name }}
+            <br><strong>Tour</strong>: <a href="/request/{{ b.tour_id }}">{{ b.tour_title }}</a>
+            <br><strong>Tour Description</strong>: {{ b.tour_desc }}
+            <br><strong>Price</strong>: {{ b.tour_price }}
+            <br><strong>Start Date</strong>: {{ b.start_date }}
+            <br><strong>End Date</strong>: {{ b.end_date }}
+            <br><strong>Date Booked</strong>: {{ b.date_booked }}
+        </p>
+        <p><strong>Review</strong>: {{ b.review }}</p>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No bookings found.</p>
+{% endif %}
+
+
+<h4>Tours Listed</h4>
+<form action="/tour/" method="get">
+    <input type="submit" value="New Tour">
+</form>
+<br>
+{% if tours|length %}
+<ul>
+    {% for t in tours %}
+    <li style="background-color:lightblue;margin-bottom:1rem;">
+        <p><strong>Title</strong>: {{ t.title }}</p>
+        <p><strong>Tour Type</strong>: {{ t.tourType__name }}</p>
+        <p><strong>Description</strong>: {{ t.description }}</p>
+        <p><strong>Days</strong>: {{ t.days }}</p>
+        <p><strong>Price</strong>: ${{ t.price }}</p>
+        <form action="/tour/{{ t.id }}/" method="post">
+            {% csrf_token %}
+            <input type="submit" value="Delete">
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No tours listed.</p>
+{% endif %}
+
+{% endblock %}
