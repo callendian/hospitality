@@ -1,1 +1,1 @@
-C:\Users\Christopher\Documents\INFO 441\hospitality\mysite\db.sqlite3
+/mysite/db.sqlite3
