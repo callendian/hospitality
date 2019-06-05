@@ -99,33 +99,8 @@ def showDisputes(request):
                 cur_dict2["guide"] = Guide.objects.get(id=cur_dict2['guide']).user
                 cur_dict2["bookingID"] = dispute.booking.id
                 disputeObj.append(cur_dict2)   
-
+            print(disputeObj)
         return render(request, 'main/disputes.html', {'disputeObj': disputeObj})
-
-
-'''Responsible for rendering a webpage that displays dispute information given a disputeID.'''
-'''
-@csrf_exempt
-def showDisputes(request, disputeID):
-    if(not request.user.is_authenticated):
-        return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
-    if(request.method == "GET"):
-        try:
-            curCase = Dispute.objects.get(id=disputeID)
-        except:
-            return HttpResponse("Dispute with the given ID doesn't exist.", status=status.HTTP_400_BAD_REQUEST)
-        if(curCase.guide.user != request.user 
-                and curCase.visitor.user != request.user 
-                and (not request.user.is_superuser)):
-            return HttpResponse("You don't have permission to view this dispute", 
-                                status=status.HTTP_401_UNAUTHORIZED)
-        cur_dict = json.loads(serializers.serialize('json', [curCase, ]))[0]['fields']
-        cur_dict["visitor"] = Visitor.objects.get(id=cur_dict['visitor']).user
-        cur_dict["guide"] = Guide.objects.get(id=cur_dict['guide']).user
-        cur_dict["bookingID"] = curCase.booking.id
-        return render(request, '../templates/main/disputes.html', {'dispute': cur_dict}, status=200)
-    
-'''
 
 '''Responsible for creating and resolving a dispute between guide and visitors. Only accessible
 to the visitor and the guide implicated on the dispute'''
@@ -135,6 +110,7 @@ def disputes(request):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
     #Create a new dispute that takes in the visitor's Username and guide's username
     if(request.method == "GET"):
+        print("ok")
         form = DisputeForm()
         form2 = DisputeID()
         return render(request, '../templates/main/newDispute.html', {'form': form, 'form2': form2}, status=200)
@@ -145,20 +121,14 @@ def disputes(request):
         try:
             booking = Booking.objects.get(id=form.cleaned_data["bookingID"], visitor=Visitor.objects.get(user=request.user))
             newDispute = Dispute(visitor=booking.visitor, 
-                                    guide=booking.tour.guide, description=form.cleaned_data["description"], booking=booking)
+                                guide=booking.tour.guide, description=form.cleaned_data["description"], booking=booking)
             newDispute.save()
         except:
-            return HttpResponse("Booking id invalid", status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse("Booking id invalid. You already have a dispute, or booking id is not associated to your account",
+                 status=status.HTTP_400_BAD_REQUEST)
 
         return HttpResponseRedirect("/allDisputes")
-        '''
-        cur_dict = json.loads(serializers.serialize('json', [newDispute, ]))[0]['fields']
-        cur_dict["guide"] = formatUser(guide.user)
-        cur_dict["visitor"] = formatUser(visitor.user)
-        cur_dict["booking"] = formatBooking(booking)
-        serializedObj = json.dumps(cur_dict)
-        return HttpResponse(serializedObj, "application/json", status=status.HTTP_201_CREATED)
-        '''
+
     #Delete a dispute given a dispute ID. 
     elif(request.method == "DELETE"):
         data = checkValidJSONInput(request)
@@ -263,14 +233,7 @@ def profile(request):
         if(not request.user.is_superuser and userToBeDeleted.user != request.user):
             return HttpResponse("You have to be an administrator or owner to delete a user", 
                                 content_type="plain/text", 
-                                status=status.HTTP_401_UNAUTHORIZED)
-        '''
-        try:
-            relevantTours = Tour.objects.get(Guest=userToBeDeleted)
-            relevantTours.delete()
-        except:
-            pass  
-        '''  
+                                status=status.HTTP_401_UNAUTHORIZED) 
         userToBeDeleted.delete()
         return HttpResponse("User Deleted", status=status.HTTP_200_OK)
 
