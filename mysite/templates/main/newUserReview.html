@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Make a new Dispute/Complain</h2>
+<form action="/userreview" method="post">
+    {% csrf_token %}
+    {{form}}
+    <input type="submit" value="Submit">
+    <br><br>
+</form>
+
+{% endblock %}
