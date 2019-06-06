@@ -29,6 +29,9 @@ class Guide(models.Model):
     bio = models.TextField(null=True, blank=True)
     createdAt = models.DateTimeField('date created', auto_now_add=True)
 
+    def natural_key(self):
+        return (self.first_name, self.last_name)
+
 
 # Represents a Visitor's profile
 class Visitor(models.Model):
@@ -38,6 +41,9 @@ class Visitor(models.Model):
     email = models.CharField(max_length=254, default="")
     gender = models.CharField(max_length=10, choices=GENDER, default="N/A")
     createdAt = models.DateTimeField('date created', auto_now_add=True)
+
+    def natural_key(self):
+        return (self.first_name, self.last_name)
 
 
 # Reference table for tour types (general, outdoors, sightseeing, food, etc)
@@ -52,6 +58,9 @@ class TourType(models.Model):
     )
     name = models.CharField(max_length=50, choices=choices, unique=True)
     description = models.TextField(null=True, blank=True)
+
+    def natural_key(self):
+        return (self.name)
 
 # Represents a tour appointment between 1 guide and 1 user
 class Tour(models.Model):
@@ -209,3 +218,6 @@ class City(models.Model):
 
     class Meta:
         verbose_name_plural = 'cities'
+
+    def natural_key(self):
+        return (self.name + ', ' + self.country.name)
