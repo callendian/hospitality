@@ -1,0 +1,8 @@
+version: '2.1'
+
+services:
+  hospitality:
+    image: info441finalcsofian.azurecr.io/code9:latest
+    build: .
+    ports:
+      - 3000:3000
