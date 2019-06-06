@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Contact Us</h1>
+<p>We are always looking for feedback about our site. Feel free to email us at
+    <em>hospitality441@yahoo.com</em> or call us at <em>(206) 4509 2347</em> if 
+    you have any questions or concerns about our site. Or if you prefer, use
+    the form below to contact us. 
+</p>
+<form action="/contactus" method="post">
+    {% csrf_token %}
+    {{form}}
+    <input type="submit" value="Submit">
+    <br><br>
+</form>
+
+{% endblock %}
