@@ -171,17 +171,9 @@ class Dispute(models.Model):
 
     def save(self, *args, **kwargs):
         if(len(self.description) < 5):
-            return 'Enter a longer valid description'
+            raise ValidationError('Review already exists')
         super().save(*args, **kwargs)
 
-
-# Payment record for bookings
-# class Transaction(models.Model):
-#     visitor = models.OneToOneField('Visitor', on_delete=models.CASCADE)
-#     guide = models.OneToOneField('Guide', on_delete=models.CASCADE)
-#     booking = models.OneToOneField('Booking', on_delete=models.CASCADE)
-#     amount = models.DecimalField(max_digits=8, decimal_places=2)
-#     paidAt = models.DateTimeField(auto_now_add=True)
 
 
 # Reference table for countries
@@ -202,7 +194,7 @@ class State(models.Model):
 
 # Reference table for cities
 class City(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     country = models.ForeignKey('Country', on_delete=models.CASCADE)
     state = models.ForeignKey('State', on_delete=models.CASCADE, null=True, blank=True)
     code = models.CharField(null=True, blank=True, max_length=5)

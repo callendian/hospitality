@@ -23,8 +23,11 @@ def userreview(request):
         form = VisitorReviewForm(request.POST)
         if(not form.is_valid()):
             return HttpResponse("Invalid Dispute Request.", status=status.HTTP_400_BAD_REQUEST)
-        curGuide = Guide.objects.get(user=request.user)
-        curBooking = Booking.objects.get(id=form.cleaned_data["bookingID"])
+        try:
+            curGuide = Guide.objects.get(user=request.user)
+            curBooking = Booking.objects.get(id=form.cleaned_data["bookingID"])
+        except:
+            return HttpResponse("The booking with the given ID doesn't exist")
         if(curBooking.tour.guide != curGuide):
             return HttpResponse("You have to be a guide for this tour!", status=status.HTTP_400_BAD_REQUEST)
         newReview = VisitorReview(visitor=Visitor.objects.get(
@@ -87,19 +90,27 @@ def showDisputes(request):
     if(request.method == "GET"):
         disputeObj = []
         try:
-            allDisputes = Dispute.objects.filter(visitor=Visitor.objects.get(user=request.user))
+            allDisputesVisitors = Dispute.objects.filter(visitor=Visitor.objects.get(user=request.user))
+            allDisputeGuide = Dispute.objects.filter(guide=Guide.objects.get(user=request.user))
         except:
             return HttpResponse("Error querying disputes for this visitor",
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        if allDisputes.exists():
-            for dispute in allDisputes:
+        if allDisputesVisitors.exists():
+            for dispute in allDisputesVisitors:
                 cur_dict2 = json.loads(serializers.serialize('json', [dispute, ]))[0]['fields']
                 cur_dict2["visitor"] = Visitor.objects.get(id=cur_dict2['visitor']).user
                 cur_dict2["guide"] = Guide.objects.get(id=cur_dict2['guide']).user
                 cur_dict2["bookingID"] = dispute.booking.id
                 disputeObj.append(cur_dict2)   
             print(disputeObj)
+        if allDisputeGuide.exists():
+            for dispute in allDisputeGuide:
+                cur_dict2 = json.loads(serializers.serialize('json', [dispute, ]))[0]['fields']
+                cur_dict2["visitor"] = Visitor.objects.get(id=cur_dict2['visitor']).user
+                cur_dict2["guide"] = Guide.objects.get(id=cur_dict2['guide']).user
+                cur_dict2["bookingID"] = dispute.booking.id
+                disputeObj.append(cur_dict2)   
         return render(request, 'main/disputes.html', {'disputeObj': disputeObj})
 
 '''Responsible for creating and resolving a dispute between guide and visitors. Only accessible
@@ -110,7 +121,6 @@ def disputes(request):
         return HttpResponse("Unauthorized. Please Sign in", status=status.HTTP_401_UNAUTHORIZED)
     #Create a new dispute that takes in the visitor's Username and guide's username
     if(request.method == "GET"):
-        print("ok")
         form = DisputeForm()
         form2 = DisputeID()
         return render(request, '../templates/main/newDispute.html', {'form': form, 'form2': form2}, status=200)

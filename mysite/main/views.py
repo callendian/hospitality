@@ -355,6 +355,11 @@ def request_tour(request, t_id):
             [data['end_date_month'][0],
             data['end_date_day'][0], 
             data['end_date_year'][0]])
+
+        if(datetime.datetime.strptime(start_date, "%m-%d-%Y").date() 
+            > datetime.datetime.strptime(end_date, "%m-%d-%Y").date()):
+            return HttpResponse("Enter valid date", status=status.HTTP_400_BAD_REQUEST)
+
         
         tourRequest = TourRequest(
             visitor=visitor, 
@@ -362,13 +367,13 @@ def request_tour(request, t_id):
             start_date=datetime.datetime.strptime(start_date, "%m-%d-%Y").date(),
             end_date=datetime.datetime.strptime(end_date, "%m-%d-%Y").date()
         )
-
         try:
             tourRequest.save()
         except:
             return HttpResponse('Failed to request tour.', status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponseRedirect('/profile')
         
-        return HttpResponseRedirect('/visitor')
+
 
     else:
         return HttpResponse("Method not allowed on this route", status=405)
