@@ -213,3 +213,9 @@ class City(models.Model):
 
     def natural_key(self):
         return (self.name + ', ' + self.country.name)
+
+#Reference table for messages sent over contactus page
+class ContactUs(models.Model):
+    name = models.CharField(max_length=250)
+    email = models.CharField(max_length=30)
+    description = models.CharField(max_length=500)

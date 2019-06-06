@@ -44,6 +44,8 @@ class StateAdmin(admin.ModelAdmin):
 class CityAdmin(admin.ModelAdmin):
     pass
 
+class ContactUsAdmin(admin.ModelAdmin):
+    pass
 
 admin.site.register(Guide, GuideAdmin)
 admin.site.register(Visitor, VisitorAdmin)
@@ -59,3 +61,4 @@ admin.site.register(Dispute, DisputeAdmin)
 admin.site.register(Country, CountryAdmin)
 admin.site.register(State, StateAdmin)
 admin.site.register(City, CityAdmin)
+admin.site.register(ContactUs, ContactUsAdmin)

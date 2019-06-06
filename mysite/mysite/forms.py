@@ -19,3 +19,8 @@ class VisitorReviewForm(forms.Form):
     bookingID = forms.IntegerField(label="Booking ID", required=True)
     description = forms.CharField(label='Description', max_length=250, required=True)
     rating = forms.ChoiceField(choices=STAR_RATING, required=True)
+
+class contactUSForm(forms.Form):
+    name = forms.CharField(label='Name', max_length=250, required=True)
+    email = forms.CharField(label='Email', max_length=30, required=True)
+    description = forms.CharField(label='Description', max_length=500, required=True)

@@ -26,5 +26,6 @@ urlpatterns = [
     path('profile', views.profile, name="profile"),
     path('allDisputes', views.showDisputes, name="showDisputes"),
     path('disputes', views.disputes, name="disputes"),
-    path('writeUserReview', views.userreview, name="writeUserReview")
+    path('writeUserReview', views.userreview, name="writeUserReview"),
+    path('contactus', views.contact_us, name='contact_us')
 ]

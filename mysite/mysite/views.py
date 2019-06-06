@@ -6,8 +6,9 @@ from main.models import *
 from rest_framework import status
 from mysite.serializer import VisitorReview
 import json
-from .forms import DisputeForm, DisputeID, VisitorReviewForm
+from .forms import DisputeForm, DisputeID, VisitorReviewForm, contactUSForm
 from django.core import serializers
+from django.core.mail import send_mail
 
 '''Responsible for creating, editing, deleting and viewing user review. Only the visitor can view
 the user review and only the guide can write the user review. '''
@@ -112,6 +113,29 @@ def showDisputes(request):
                 cur_dict2["bookingID"] = dispute.booking.id
                 disputeObj.append(cur_dict2)   
         return render(request, 'main/disputes.html', {'disputeObj': disputeObj})
+
+@csrf_exempt
+def contact_us(request):
+    if(request.method == "GET"):
+        form = contactUSForm()
+        return render(request, '../templates/main/contact_us.html', {'form': form}, status=200)
+    elif(request.method == "POST"):
+        form = contactUSForm(request.POST)
+        if(not form.is_valid()):
+            return HttpResponse("Invalid Form.", status=status.HTTP_400_BAD_REQUEST)
+        try:
+            newContactUs = ContactUs(
+                name=form.cleaned_data["name"],
+                description = form.cleaned_data["description"],
+                email = form.cleaned_data["email"]
+            )
+            newContactUs.save()
+        except:
+            return HttpResponse("Error interacting with Database",
+                 status=status.HTTP_400_BAD_REQUEST)
+        
+        return HttpResponse("Message sent")
+
 
 '''Responsible for creating and resolving a dispute between guide and visitors. Only accessible
 to the visitor and the guide implicated on the dispute'''
