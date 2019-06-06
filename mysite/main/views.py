@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.db import DatabaseError
+from django.core import serializers
 from rest_framework import status
 import datetime
 import json
@@ -193,6 +194,21 @@ def create_tour(request):
         return HttpResponse('Method not allowed',
                             status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+@csrf_exempt
+def all_tours(request):
+    if request.method == 'GET':
+        all_tours = Tour.objects.prefetch_related('guide', 'tourType').all()
+        
+        all_tours = serializers.serialize(
+            'json', all_tours, 
+            use_natural_foreign_keys=True
+        )
+
+        return HttpResponse(all_tours, content_type='application/json')
+
+    else:
+        return HttpResponse('Method not allowed',
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 @csrf_exempt
 def tour(request, id):
