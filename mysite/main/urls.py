@@ -8,6 +8,7 @@ urlpatterns = [
     path('search/', views.search, name='search'),
     path('visitor/', views.visitor, name='visitor'),
     path('guide/', views.guide, name='guide'),
+    path('tour/', views.create_tour, name='create_tour'),
     path('saved/', views.saved, name='saved'),
     path('tours/all', views.all_tours, name='all_tours'),
     path('tour/<int:id>/', views.tour, name='tour_specific'),
