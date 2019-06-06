@@ -218,6 +218,7 @@ def profile(request):
             except:
                 pass
             curBooking = booking.tour
+            print(booking.tour.city.name)
             cur_dict2 = json.loads(serializers.serialize('json', [booking, ]))[0]['fields']
             cur_dict2["Guest"] = cur_dict2["visitor"]
             cur_dict2["tourType"] = curBooking.tourType
