@@ -25,7 +25,12 @@ SECRET_KEY = 'n$2suu1%90echc0)3xd7q@9)e^f(k5q$n(+^j9=#krbkxi8k(d'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [    
+   "info441hospitality.azurewebsites.net",
+   "info441hospitality2.azurewebsites.net",
+   "localhost",
+   "127.0.0.1",
+]
 
 
 # Application definition
@@ -77,8 +82,15 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'sql_server.pyodbc',
+        'NAME': "info441-finals",
+        'USER': "csofian@info441-finals",
+        'PASSWORD': "Edalroy44",
+        'HOST': "info441-finals.database.windows.net",
+        'OPTIONS': {
+             'driver': 'ODBC Driver 13 for SQL Server',
+             'MARS_Connection': 'True',
+         }
     }
 }
 
