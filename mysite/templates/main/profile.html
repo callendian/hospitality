@@ -5,20 +5,6 @@
 {% block content %}
 
 <h2>Visitor Profile</h2>
-<h4>User: {{ visitor.user }}</h4>
-<h4>
-    Sex: 
-    {% if visitor.gender == 'M' %}
-        Male
-    {% elif visitor.gender == 'F' %}
-        Female
-    {% elif visitor.gender == 'O' %}
-        Other
-    {% else %}
-        N/A
-    {% endif %}
-</h4>
-<h4>Guide Bio: {{ guideBio }}</h4>
 <h4>Bookings</h4>
 {% if bookingObj|length %}
     {% for booking in bookingObj %}
