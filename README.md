@@ -196,7 +196,9 @@ Possible Errors:
 2) 400, must fill at the username parameter o
 
 ####DELETE
-The delete method will allow the existing guide to delete their review of a particular users. It will take in a dispute id and it will delete that particular dispute. The only person that can delete this dispute is the user that file the dispute or the guide in the dispute.
+The delete method will allow the existing guide to delete their review of a particular users. It will 
+take in a dispute id and it will delete that particular dispute. The only person that can delete this 
+dispute is the user that file the dispute or the guide in the dispute.
 
 Possible Errors:
 1). 400 - If the required parameters (visitorName) is not included in the input.
@@ -205,8 +207,8 @@ Possible Errors:
 ###'/guide/'
 
 ####GET
-This endpoint allows guides to find information about their account like their username, etc. It also allows them to see
-all their booking requests from users and the bookings that they have already approved.
+This endpoint allows guides to find information about their account like their username, etc. It also allows 
+them to see all their booking requests from users and the bookings that they have already approved.
 
 Possible Errors:
 1) 401, must be signed in as a user
@@ -225,16 +227,21 @@ This end point will return a form for the user to fill out with fields including
 
 Possible Errors:
 1) 400, if the dispute with the given id doesn't exist
-1) 401, Unauthorized access: The user is not logged in, or if the logged in user is not the implicated visitor or guide. 
+1) 401, Unauthorized access: The user is not logged in, or if the logged in user is not the implicated 
+visitor or guide. 
 
 #### POST:
-This POST end point will create a dispute with the paramenters passed in the form. This will be the main way the guide and the users file a complain about the other party. 
+This POST end point will create a dispute with the paramenters passed in the form. This will be the main way the 
+guide and the users file a complain about the other party. 
 Possible Errors:
-1. 400, Bad request when the required parameters is not included in the form or when the guide or visitors with the given parameters can't be found
+1. 400, Bad request when the required parameters is not included in the form or when the guide or visitors with 
+the given parameters can't be found
 2. 401, When the users is not logged in or if they are not a guide then they shouldn't be able to write a review
 
 ### DELETE:
-The delete method will allow either the user, the guide or the admin to delete the dispute. This will serve as a dispute resolution function in our website. If it is successful, the user will get a message saying that the dispute has been resolved. 
+The delete method will allow either the user, the guide or the admin to delete the dispute. This will serve as a 
+dispute resolution function in our website. If it is successful, the user will get a message saying that the 
+dispute has been resolved. 
 
 Possible Errors:
 1). 400 - if the dispute with the given doesn't exist, or if it is not included in the parameters. 
@@ -245,3 +252,20 @@ Possible Errors:
 Shows all the disputes that the current user is involed in
 1. 400, Error interacting with the database
 2. 401, When the users is not logged in or if they are not a guide then they shouldn't be able to write a review
+
+## About Us
+### '/aboutus'
+#### GET:
+Displays information about the site
+
+## Contact Us
+### '/contactus'
+#### GET:
+Displays information about how to contact us and displays a form that allows a user to contact us directly through
+our site
+
+#### POST:
+Takes the information entered in the form and creates a new Contactus object and saves it to the database
+
+Possible Errors:
+1. 400, Error interacting with the database
