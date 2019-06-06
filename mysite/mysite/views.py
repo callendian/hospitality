@@ -133,8 +133,15 @@ def contact_us(request):
         except:
             return HttpResponse("Error interacting with Database",
                  status=status.HTTP_400_BAD_REQUEST)
-        
         return HttpResponse("Message sent")
+
+def about_us(request):
+    if(request.method == "GET"):
+        return render(request, '../templates/main/about_us.html', {}, status=200)
+
+def homepage(request):
+    if(request.method == "GET"):
+        return render(request, '../templates/main/homepage.html', {}, status=200)
 
 
 '''Responsible for creating and resolving a dispute between guide and visitors. Only accessible

@@ -27,5 +27,6 @@ urlpatterns = [
     path('allDisputes', views.showDisputes, name="showDisputes"),
     path('disputes', views.disputes, name="disputes"),
     path('writeUserReview', views.userreview, name="writeUserReview"),
-    path('contactus', views.contact_us, name='contact_us')
+    path('contactus', views.contact_us, name='contact_us'),
+    path('aboutus', views.about_us, name='about_us')
 ]
